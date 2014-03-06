@@ -11,12 +11,12 @@
 #define OPTIMIZE
 
 // OPT_STATIC assumes that a variable's initial
-// value is always the same for each invocation of a 
+// value is always the same for each invocation of a
 // function.
 #ifdef OPTIMIZE
   #define OPT_STATIC static
 #else
-  #define OPT_STATIC 
+  #define OPT_STATIC
 #endif
 
 const float rollFK = 1.0f;

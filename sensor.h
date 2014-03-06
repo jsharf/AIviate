@@ -19,7 +19,7 @@
 #define compass_mode 0x02
 
 #define ACCEL_MAGNITUDE 256
-#define GYRO_MAGNITUDE 256
+#define GYRO_MAGNITUDE 1
 
 #define barometer_w 0xEE
 #define barometer_r 0xEF
@@ -42,7 +42,7 @@ struct config
 };
 
 
-char sensor_set_i2c_pointer(char addr, char reg);   
+char sensor_set_i2c_pointer(char addr, char reg);
 
 int sensor_read(char addr, char reg, char *buf, int n);
 
