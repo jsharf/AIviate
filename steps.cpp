@@ -104,7 +104,7 @@ int get_sensor_data(int pid)
     set(m_db, "gy", 456);//s.gy);
     set(m_db, "gz", 789);//s.gz);
 
-    print_db(m_db);
+    //print_db(m_db);
 
     // TESTY
     //pc.printf("set sensor values in database\r\n");
