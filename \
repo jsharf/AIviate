@@ -132,6 +132,11 @@ int get_sensor_data(int pid)
     return PROC_CONTINUE;
 }
 
+#define OPTIMIZE
+#define OPT_STATIC \
+  #ifdef OPTIMIZE \
+    static \
+  #endif 
 
 // oh god, process identifier (PID) vs proportional integral derivative (PID)
 // is gonna be soooooo confusing
