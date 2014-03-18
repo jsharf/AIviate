@@ -5,6 +5,7 @@ I2C i2c(p9, p10);
 
 char sensor_set_i2c_pointer(char addr, char reg)
 {
+    addr &= ~1;
     if (i2c.write(addr) == 0)
     {
         if (DEBUG)
@@ -29,13 +30,13 @@ int sensor_read(char addr, char reg, char *buf, int n)
             pc.printf("Could not set i2c pointer (read)\r\n");
         return 0;
     }
-    if (i2c.read(addr|1, buf, n, true) != 0)
+    int ret = i2c.read(addr, buf,n);   
+    if (ret != 0)
     {
         if (DEBUG)
-            pc.printf("Could not execute read sequence (read)\r\n");
+            pc.printf("I2C read function failed in sensor_read\r\n");
         return 0;
     }
-    i2c.stop();
     return n;
 }
 
@@ -66,7 +67,7 @@ int sensor_write(char addr, char reg, char *buf, int n)
 int sensor_read_accelerometer(struct sensor* s)
 {
     int ret = sensor_read(accel_w, ACCEL_X, s->raw_data, 6);
-    if (ret == 0)
+    if (ret != 6)
     {
         pc.printf("Error, could not read (read_accelerometer)\r\n");
         return 0;
@@ -132,15 +133,17 @@ int sensor_gyro_turnon()
 {
     char power_ctl;
     int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
-    pc.printf("Gyro REG1 read: %x\r\n",power_ctl);
+    if (DEBUG)
+        pc.printf("Gyro REG1 read: %x\r\n",power_ctl);
     if (ret == 0)
     {
         if (DEBUG)
             pc.printf("Error turning on gyro (gyro_turnon)\r\n");
         return 0;
     }
-    power_ctl |= 0x8 ;
-    pc.printf("Gyro REG1 write: %x\r\n",power_ctl);
+    power_ctl |= 0x8;
+    if (DEBUG)
+        pc.printf("Gyro REG1 write: %x\r\n",power_ctl);
     ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret == 0)
     {
@@ -174,19 +177,14 @@ int sensor_gyro_turnoff()
 
 int sensor_read_gyro(struct sensor* s)
 {
-    char buf = GYRO_X;
-    int ret = i2c.write(gyro_w, &buf, 1, true);
-    if (ret != 0)
+    //char buf = GYRO_X;
+    int ret = sensor_read(gyro_w|1, GYRO_X, s->raw_data, 6);
+    if (ret != 6)
     {
-        pc.printf("Error, could not write (read_gyro)\r\n");
+        pc.printf("Error, could not read (sensor_read_gyro)\r\n");
         return 0;
     }
-    ret = i2c.read(gyro_w, s->raw_data, 6);
-    if (ret != 0)
-    {
-        pc.printf("Error, could not read (read_gyro)\r\n");
-        return 0;
-    }
+    
     int16_t gxlsb = (int16_t) s->raw_data[0];
     int16_t gxmsb = (int16_t) s->raw_data[1];
     int16_t gylsb = (int16_t) s->raw_data[2];
@@ -194,13 +192,15 @@ int sensor_read_gyro(struct sensor* s)
     int16_t gzlsb = (int16_t) s->raw_data[4];
     int16_t gzmsb = (int16_t) s->raw_data[5];
 
-    s->gx = ((gxmsb << 8) + gxlsb);
-    s->gy = ((gymsb << 8) + gylsb);
-    s->gz = ((gzmsb << 8) + gzlsb);
-
-    //s->gx = (int16_t)((gxmsb << 8) | gxlsb);// - s->gx0;
-    //s->gy = (int16_t)((gymsb << 8) | gylsb);// - s->gy0;
-    //s->gz = (int16_t)((gzmsb << 8) | gzlsb);// - s->gz0;
+#ifdef USE_PREDETERMINED_ZERO_VALS
+    s->gx = (int16_t)((gxmsb << 8) | gxlsb) - GX_0;
+    s->gy = (int16_t)((gymsb << 8) | gylsb) - GY_0;
+    s->gz = (int16_t)((gzmsb << 8) | gzlsb) - GZ_0;
+#else
+    s->gx = (int16_t)((gxmsb << 8) | gxlsb) - s->gx0;
+    s->gy = (int16_t)((gymsb << 8) | gylsb) - s->gy0;
+    s->gz = (int16_t)((gzmsb << 8) | gzlsb) - s->gz0;
+#endif
     return 1;
 }
 

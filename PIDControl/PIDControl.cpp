@@ -1,6 +1,5 @@
-#include <cmath>
+#include <math.h>
 #include "PIDControl.h"
-using namespace std;
 
 PIDController::PIDController(float pCoeff, float iCoeff, float dCoeff, float iDecayFactor)
 {

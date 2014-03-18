@@ -9,29 +9,28 @@
 #define KD 0.01f
 
 #define OPTIMIZE
-
-// OPT_STATIC assumes that a variable's initial
-// value is always the same for each invocation of a
-// function.
 #ifdef OPTIMIZE
-  #define OPT_STATIC static
+ #define OSTATIC static
 #else
-  #define OPT_STATIC
+ #define OSTATIC 
 #endif
 
-const float rollFK = 1.0f;
-const float pitchFK = 1.0f;
-const float rollKP = 0.5f;
-const float rollKI = 0.01f;
-const float rollKD = 0.1f;
-const float pitchKP = 0.5f;
-const float pitchKI = 0.01f;
-const float pitchKD = 0.1f;
-
 // number of cycles to use in measuring average zero-level gyro values
-#define ZERO_MEASURE_PERIOD 10
+#define ZERO_MEASURE_PERIOD 1000
 // whether or not to enable usb debugging
 #define USBDEBUG 1
+
+const float rollFK = 0.95f;
+const float pitchFK = 0.95f;
+const float rollKP = 0.6f;
+const float rollKI = 0.0f;
+const float rollKD = 0.02f;
+const float pitchKP = 0.6f;
+const float pitchKI = 0.0f;
+const float pitchKD = 0.02f;
+
+const float AileronCenter = 0.5f;
+const float ElevatorCenter = 0.65f;
 
 extern Serial pc;
 

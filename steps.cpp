@@ -12,75 +12,57 @@ int main_proc(int pid)
 {
     // schedule process to initialize i2c sensors
     schedule_proc("INITSENSE", &init_sensors);
-
-    set_time(0);
-
+    
     return PROC_BREAK;
 }
 
-// in the future, change get_sensor_data to append the sensor data to a rolling list
+// in the future, change get_sensor_data to append the sensor data to a rolling list 
 int get_sensor_data(int pid)
 {
-    struct sensor s;
+    OSTATIC struct sensor s;
+    int control_pid = find_proc("CONTROL"); // the process identifier of the processes which handles the control algorithm
+    if (control_pid == -1)
+    {
+        if (schedule_proc("CONTROL", pid_control) < 0)
+        {
+            if(USBDEBUG)
+                pc.printf("Couldn't start control process\r\n");    
+        }   
+        if(USBDEBUG)
+            pc.printf("Added new process control\r\n");
+        
+        control_pid = find_proc("CONTROL");
+    }
 
-    //pc.printf("GET SENSOR proc running!\r\n");
-
+    
     // retrieve process database
     db *m_db = get_db(pid);
-    /** GYRO VALUES
-    int xzero_i = search_db(m_db, "gx0");
-    int yzero_i = search_db(m_db, "gy0");
-    int zzero_i = search_db(m_db, "gz0");
+    
+    OSTATIC int xzero_i = search_db(m_db, "gx0");
+    OSTATIC int yzero_i = search_db(m_db, "gy0");
+    OSTATIC int zzero_i = search_db(m_db, "gz0");
     if (xzero_i == -1 || yzero_i == -1 || zzero_i == -1)
     {
-        // probably first time running process, retrieve data from init_sensors and store in current process output buffer
-        int init_pid = find_proc("INITSENSE");
-        if (init_pid == -1)
-        {
-            if (USBDEBUG)
-                pc.printf("INITSENSE not found, was init called? (get_sensor_data)\r\n");
-            return 1;
-        }
-        // copy gyro zero-level values from init_sensors to current process db
-        db* init_db = get_db(init_pid);
-        xzero_i = search_db(init_db, "gx0");
-        yzero_i = search_db(init_db, "gy0");
-        zzero_i = search_db(init_db, "gz0");
-        if (xzero_i == -1 || yzero_i == -1 || zzero_i == -1)
-        {
-            pc.printf("Critical error: gyro_zero vals not found \r\n");
-            print_all_db();
-            schedule_proc("INITSENSE", &init_sensors);
-            return 0;
-        }
-        int gx0, gy0, gz0;
-        gx0 = init_db->records[xzero_i].val;
-        gy0 = init_db->records[yzero_i].val;
-        gz0 = init_db->records[zzero_i].val;
-        set(m_db, "gx0", gx0);
-        set(m_db, "gy0", gy0);
-        set(m_db, "gz0", gz0);
-        pc.printf("getdata: %i %i %i\r\n", gx0, gy0, gz0);
-    }
-
-    s.gx0 = m_db->records[xzero_i].val;
-    s.gy0 = m_db->records[yzero_i].val;
-    s.gz0 = m_db->records[zzero_i].val;
-    */
-
-    // TESTY
-    //pc.printf("about to read accel\r\n");
-
-    if (sensor_read_accelerometer(&s) == 0 || sensor_read_gyro(&s) == 0)
-    {
-        //if (USBDEBUG)
-        //pc.printf("Error in get_sensor_data while reading from accel!\r\n");
+        schedule_proc("INITSENSE", &init_sensors);
         return PROC_BREAK;
     }
-
+    
+    //print_db(m_db);
+    
+    s.gx0 = m_db->records[xzero_i].val;
+    s.gy0 = m_db->records[yzero_i].val;
+    s.gz0 = m_db->records[zzero_i].val; 
+    
+    if (sensor_read_accelerometer(&s) == 0 || sensor_read_gyro(&s) == 0)
+    {
+        if (USBDEBUG)
+            pc.printf("Error in get_sensor_data while reading from accel/gyro!\r\n");
+        return PROC_BREAK;
+    }
+    
     // TESTY
     //pc.printf("finished reading accel\r\n");
-
+    
     /*
     if (read_gyro(&s) == 0)
     {
@@ -95,43 +77,27 @@ int get_sensor_data(int pid)
         return 1;
     }
     */
+    
+    
+    
+    OSTATIC db* pid_db = get_db(control_pid);
 
-    set(m_db, "ax", 123);//s.ax);
-    set(m_db, "ay", 456);//s.ay);
-    set(m_db, "az", 789);//s.az);
-
-    set(m_db, "gx", 123);//s.gx);
-    set(m_db, "gy", 456);//s.gy);
-    set(m_db, "gz", 789);//s.gz);
-
-    //print_db(m_db);
+    set(pid_db, "ax", s.ax);
+    set(pid_db, "ay", s.ay);
+    set(pid_db, "az", s.az);
+    
+    set(pid_db, "gx", s.gx);
+    set(pid_db, "gy", s.gy);
+    set(pid_db, "gz", s.gz);
+    
+    //print_db(pid_db);
 
     // TESTY
     //pc.printf("set sensor values in database\r\n");
 
-
-    int control_pid = find_proc("CONTROL"); // the process identifier of the processes which handles the control algorithm
-    if (control_pid == -1)
-    {
-        // TESTY
-        //pc.printf("Adding new proc CONTROL\r\n");
-        if (schedule_proc("CONTROL", pid_control) < 0)
-        {
-            //if(USBDEBUG)
-            //pc.printf("Couldn't start control process\r\n");
-        }
-        //pc.printf("Added new process control\r\n");
-
-    }
-    else
-    {
-        //pc.printf("control already exists\r\n");
-    }
-
     // pc.printf("Done
     return PROC_CONTINUE;
 }
-
 
 // oh god, process identifier (PID) vs proportional integral derivative (PID)
 // is gonna be soooooo confusing
@@ -140,98 +106,103 @@ int get_sensor_data(int pid)
 int pid_control(int pid)
 {
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
-    static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);
-
+    static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);    
+    
     float pid_dt = pid_timer.read_us();
     pid_timer.reset();
     pid_dt /= 1000000;
-
-    //pc.printf("CONTROL proc running!\r\n");
-    int sensorpid = find_proc("GETDATA");
-    if (sensorpid == -1)
-    {
-        if(USBDEBUG)
-            pc.printf("Could not find proc GETDATA\r\n");
-        // no sensor process. failure!!!
-        return PROC_BREAK;
-    }
-
-    // get database containing sensor data (from get_sensor_data)
-    static db* data_db = get_db(sensorpid);
-
-    int ax_i = search_db(data_db, "ax");
-    int ay_i = search_db(data_db, "ay");
-    int az_i = search_db(data_db, "az");
-
-    OPT_STATIC int gx_i = search_db(data_db, "gx");
-    OPT_STATIC int gy_i = search_db(data_db, "gy");
-    OPT_STATIC int gz_i = search_db(data_db, "gz");
-
+    
+    // get database of PID process
+    OSTATIC db* pid_db = get_db(pid);
+    
+    OSTATIC int ax_i = search_db(pid_db, "ax");
+    OSTATIC int ay_i = search_db(pid_db, "ay");
+    OSTATIC int az_i = search_db(pid_db, "az");
+    
+    OSTATIC int gx_i = search_db(pid_db, "gx");
+    OSTATIC int gy_i = search_db(pid_db, "gy");
+    OSTATIC int gz_i = search_db(pid_db, "gz");
+    
     // if no accelerometer data present, fail
-    if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)
+    if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)   
     {
         if(USBDEBUG)
-            pc.printf("Could not find proc ax and ay in getdata's db\r\n");
+            pc.printf("Could not find ax and ay in getdata's db\r\n");
         return PROC_BREAK;
     }
-    float ax = (float) data_db->records[ax_i].val;
-    float ay = (float) data_db->records[ay_i].val;
-    float az = (float) data_db->records[az_i].val;
-
-    float gx = (float) data_db->records[gx_i].val;
-    float gy = (float) data_db->records[gy_i].val;
-    float gz = (float) data_db->records[gz_i].val;
-
+    float ax = (float) pid_db->records[ax_i].val;
+    float ay = (float) pid_db->records[ay_i].val;
+    float az = (float) pid_db->records[az_i].val;
+    
+    float gx = (float) pid_db->records[gx_i].val;
+    float gy = (float) pid_db->records[gy_i].val;
+    float gz = (float) pid_db->records[gz_i].val;    
+    
     ax /= ACCEL_MAGNITUDE;
     ay /= ACCEL_MAGNITUDE;
     az /= ACCEL_MAGNITUDE;
-
+    
     gx /= GYRO_MAGNITUDE;
     gy /= GYRO_MAGNITUDE;
-    gz /= GYRO_MAGNITUDE;
-
-    //float pitch = pitchFilter.calculate(atan2(az, ay), gx, pid_dt);
-    //float roll = rollFilter.calculate(atan2(az, ax), gy, pid_dt);
-
-    float pitch = atan2(az, ax);
-    float roll = atan2(az, ay);
-
-    pitch -= PI/2;
-    if(pitch < -PI)
+    gz /= GYRO_MAGNITUDE; 
+    
+    //float pitch = 1000*atan2(az, ax);
+    //float roll = 1000*atan2(az, ay);
+    
+    float accelAngY = atan2(az, ax);
+    float accelAngX = atan2(az, ay);
+    
+    accelAngX -= PI/2;
+    if(accelAngX < -PI)
     {
-        pitch += 2*PI;
+        accelAngX += 2*PI;
     }
-    roll -= PI/2;
-    if(roll < -PI)
+    accelAngY -= PI/2;
+    if(accelAngY < -PI)
     {
-        roll += 2*PI;
+        accelAngY += 2*PI;
     }
+    
+    float pitch = pitchFilter.calculate(accelAngY, gy, pid_dt);
+    float roll = -rollFilter.calculate(accelAngX, -gx, pid_dt);
+    
+    //set(pid_db, "pitch", (int)pitch);
+    //set(pid_db, "roll", (int)roll);
+    
+    //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
+    
+    //print_db(pid_db);
+    
+    //pc.printf("Angles: %f %f\r\n", pitch, roll);
 
-    // X-axis control via ailerons
+    // X-axis control via ailerons  
     float aileron_out = rollPID.calculate(roll, 0, pid_dt);
 
     // big fancy line that controls the PWM to ailerons
-    AILERON_CONTROL = aileron_out + 0.5f;
-
+    AILERON_CONTROL = aileron_out + AileronCenter;
+    
     float elevator_out = pitchPID.calculate(pitch, 0, pid_dt);
-
+    
+    //pc.printf("Results: %f %f %f\r\n", elevator_out, aileron_out, pid_dt);
+    
     // big fancy line that controls the PWM to elevators
-    ELEVATOR_CONTROL = elevator_out + 0.5f;
-
-    //pc.printf("Angles: %f %f Results: %f %f %f\r\n", pitch, roll, elevator_out, aileron_out, pid_dt);
-
+    ELEVATOR_CONTROL = elevator_out + ElevatorCenter;
+    
     return PROC_CONTINUE;
 }
 
 int init_sensors(int pid)
 {
     pid_timer.start();
+    
+    //set_time(0);
+    
     // create config struct
     struct config c;
-
+    
     // set configurations
     c.frequency = 400000;
-
+    
     // pass configuration struct to configuration routine
     int ret = sensor_config_gy80(&c);
     if (ret == 0)
@@ -240,15 +211,16 @@ int init_sensors(int pid)
             pc.printf("Error configuring sensors\r\n");
         return PROC_BREAK;
     }
-
+    
     pc.printf("Configuring sensors\r\n");
-
-
-
+    
     // accumulations of gyro values (for zeroing)
-    int gx = 0, gy = 0, gz = 0;
+    int32_t gx = 0, gy = 0, gz = 0;
     struct sensor s;
-    int numzerotrials = ZERO_MEASURE_PERIOD;
+    
+    s.gx0 = s.gy0 = s.gz0 = 0;
+    
+    int32_t numzerotrials = ZERO_MEASURE_PERIOD;
     for (int i=0; i<numzerotrials; i++)
     {
         if (sensor_read_gyro(&s) == 0)
@@ -259,21 +231,31 @@ int init_sensors(int pid)
         }
         gx += s.gx;
         gy += s.gy;
-        gz += s.gz;
+        gz += s.gz;  
     }
-
+    
     gx /= numzerotrials;
     gy /= numzerotrials;
-    gz /= numzerotrials;
+    gz /= numzerotrials;  
 
-    db *my_db = get_db(pid);
+    schedule_proc("GETDATA", &get_sensor_data);    
+    int dpid = find_proc("GETDATA");
+    if (dpid == -1)
+    {
+        if (USBDEBUG)
+            pc.printf("Critical Err: Getdata scheduled but find_proc can't find it (wtf?!) -- maybe proc overflow good luck\r\n");
+        return PROC_BREAK;    
+    }
+    db *my_db = get_db(dpid);
     set(my_db, "gx0", gx);
     set(my_db, "gy0", gy);
     set(my_db, "gz0", gz);
-    pc.printf("init: %i %i %i\r\n", gx, gy, gz);
-    print_db(my_db);
-    schedule_proc("GETDATA", &get_sensor_data);
-
+    if (USBDEBUG)
+    {
+        pc.printf("init: %i %i %i\r\n", gx, gy, gz);
+        print_db(my_db);
+    }
+    
     return PROC_BREAK;
 }
 
@@ -282,9 +264,9 @@ int sensor_fusion(int pid)
     int *data;
     int n;
     // get data from output of get_sensor_data
-
+    
     // this needs to be written!
-
+    
     //romberg(data, n, &trap);
     return PROC_CONTINUE;
 }
