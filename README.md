@@ -1,7 +1,7 @@
 AIviate
 =======
 
-AIviate is an autonomous drone created by modifying a Bixler V1.1 RC Airplane
+AIviate is an autonomous drone created by modifying a Bixler V1.1 RC Airplane.
 The microprocessor involved was previously the MBED LPC1768. The airplane
 recently suffered a crash, and as a result the MBED broke. After reconsidering
 our microprocessor choice, we decided to switch to the Raspberry Pi for several
