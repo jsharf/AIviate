@@ -101,3 +101,30 @@ int UDPSender::send(string msg) const
     }
     return 1;
 }
+int UDPSender::sendSensor(sensor *data) const
+{
+    char *str = (char *) malloc(128);
+    float roll = (float)data->mx;
+    float pitch = (float) data->my;
+    float heading = (float) data->mz;
+    float r_rate = (float) data->gx;
+    float p_rate = (float) data->gy;
+    float y_rate = (float) data->gz;
+    float ax = (float) data->ax;
+    float ay = (float) data->ay;
+    float az = (float) data->az;
+    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f\n",\
+    roll, pitch, heading, \
+    r_rate, p_rate, y_rate, \
+    ax, ay, az);
+    string packet((const char *) str);
+    return send(packet);
+}
+int UDPSender::sendControl(control *ctrl) const
+{
+	char send_data[128];
+    sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl->ail, ctrl->elev, ctrl->rudder,
+    ctrl->throttle);
+    string packet(send_data);
+    return send(packet);
+}

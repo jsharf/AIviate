@@ -11,9 +11,13 @@
 #include <netdb.h>
 #include <string>
 #include <cstring>
+#include "sensor.h"
+#include "control.h"
 using namespace std;
 
 extern const int PACKETSIZE;
+
+struct control;
 
 class UDPListener
 {
@@ -31,6 +35,8 @@ class UDPSender
     public:
         UDPSender(string url, string port, int debug=false);
         int send(string msg) const;
+        int sendSensor(sensor *data) const;
+        int sendControl(control *ctrl) const;
     private:
         sockaddr_in out_addr;
         int out_sockfd;

@@ -3,8 +3,6 @@
 
 #define DEBUG 1
 
-#include "mbed.h"
-
 #define accel_w 0xA6
 #define ACCEL_X 0x32 // x: 0x32,0x33 y: 0x34,0x35 z: 0x36,0x37 Little Endian!!! (x = 0x33<<8|0x22). 2's complement 16bit
 #define ACCEL_POWER_CTL 0x2D
