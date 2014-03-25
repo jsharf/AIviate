@@ -19,11 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-  
+
 #ifndef MBED_SERVO_H
 #define MBED_SERVO_H
 
-#include "mbed.h"
+#include "linux_i2c.h"
 
 /** Servo control class, based on a PwmOut
  *
@@ -32,9 +32,9 @@
  * // Continuously sweep the servo through it's full range
  * #include "mbed.h"
  * #include "Servo.h"
- * 
+ *
  * Servo myservo(p21);
- * 
+ *
  * int main() {
  *     while(1) {
  *         for(int i=0; i<100; i++) {
@@ -54,45 +54,39 @@ class Servo {
 public:
     /** Create a servo object connected to the specified PwmOut pin
      *
-     * @param pin PwmOut pin to connect to 
+     * @param pin PwmOut pin to connect to
      */
-    Servo(PinName pin);
-    
+    Servo(int pin, unsigned char sc_addr = 0x39);
+
     /** Set the servo position, normalised to it's full range
      *
      * @param percent A normalised number 0.0-1.0 to represent the full range.
      */
     void write(float percent);
-    
+
     /**  Read the servo motors current position
      *
      * @param returns A normalised number 0.0-1.0  representing the full range.
      */
     float read();
-    
-    /** Set the servo position
-     *
-     * @param degrees Servo position in degrees
-     */
-    void position(float degrees);
-    
-    /**  Allows calibration of the range and angles for a particular servo
-     *
-     * @param range Pulsewidth range from center (1.5ms) to maximum/minimum position in seconds
-     * @param degrees Angle from centre to maximum/minimum position in degrees
-     */
-    void calibrate(float range = 0.0005, float degrees = 45.0); 
-        
+
     /**  Shorthand for the write and read functions */
     Servo& operator= (float percent);
     Servo& operator= (Servo& rhs);
     operator float();
 
 protected:
-    PwmOut _pwm;
+    unsigned char _addr;
+    int _pin;
     float _range;
     float _degrees;
     float _p;
+    bool setPos(int s_num, unsigned int pos, unsigned char dev_addr);
+    I2CBus& i2cbus;
+    const int UPPER_PW_LIMIT = 2400;
+    const int LOWER_PW_LIMIT = 544;
+    const int CENTER_PW = (UPPER_PW_LIMIT+LOWER_PW_LIMIT)/2;
+    const int PW_RANGE = UPPER_PW_LIMIT-LOWER_PW_LIMIT;
 };
 
 #endif
