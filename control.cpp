@@ -1,11 +1,4 @@
-#include <iostream>
-#include <unistd.h>
-#include <string>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#include "control.h"
 using namespace std;
 
 /* 
@@ -31,7 +24,6 @@ over the network.
    Ideally, this should be put in a header file
    These are sort of self-explanatory
  */
-const int PACKETSIZE = 2048;
 
 
 void usage()
@@ -39,10 +31,6 @@ void usage()
     cerr << "control <in_port> <out_addr> <out_port>" << endl;
 }
 
-void error(const string msg)
-{
-    cerr << msg;
-}
 
 int main(int argc, char *argv[])
 {
@@ -53,98 +41,19 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    sockaddr_in in_addr;
-    sockaddr_in out_addr;
+    UDPListener lst(argv[1]);
+    UDPSender snd(argv[2], argv[3]);
 
-    struct sockaddr_in remaddr; /* remote address */
-    socklen_t addrlen = sizeof(remaddr); /* length of addresses */
-
-    int in_sockfd, out_sockfd;
-
-    in_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    out_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (in_sockfd < 0) 
-    {
-        cerr << "ERROR opening socket" << endl;
-        return 1;
-    }
-
-    if (out_sockfd < 0) 
-    {
-        cerr << "ERROR opening socket" << endl;
-        return 1;
-    }
-
-    // set nonblocking mode
-    int flags = fcntl(in_sockfd, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(in_sockfd, F_SETFL, flags);
-
-    flags = fcntl(out_sockfd, F_GETFL); 
-    flags |= O_NONBLOCK;
-    fcntl(out_sockfd, F_GETFL); 
-
-    bzero((char *) &in_addr, sizeof(in_addr));
-    int portno = atoi(argv[1]);
-    in_addr.sin_family = AF_INET;
-    in_addr.sin_addr.s_addr = INADDR_ANY;
-    in_addr.sin_port = htons(portno);
-
-    struct hostent *hp;   
-
-    hp = gethostbyname(argv[2]);
-    if (!hp) {
-        fprintf(stderr, "could not obtain address of %s\n", argv[2]);
-        return 0;
-    }
-
-    bzero((char *) &out_addr, sizeof(out_addr));
-    int outport = atoi(argv[3]);
-    out_addr.sin_family = AF_INET;
-    out_addr.sin_port = htons(outport);
-    /* put the host's address into the server address structure */
-    memcpy((void *)&out_addr.sin_addr, hp->h_addr_list[0], hp->h_length);
-
-    if (!hp) {
-        fprintf(stderr, "could not obtain address of %s\n", argv[3]);
-        return 0;
-    }
-
-    /* put the host's address into the server address structure */
-    memcpy((void *)&out_addr.sin_addr, hp->h_addr_list[0], hp->h_length);
-
-    if (bind(in_sockfd, (struct sockaddr *) &in_addr,
-                sizeof(in_addr)) < 0) 
-    {
-        error("ERROR on binding"); 
-        return 1;
-    }
-
-    unsigned char buf[PACKETSIZE];
-    int recvlen;
-
-    cout << "Listening on port " << portno << endl;
-    cout << "Output on port " << outport << endl;
-
-    // forever is a long time...
+    snd.send("derp");
     while (true)
     {
-        // wait for incoming sensor packets
-        recvlen = recvfrom(in_sockfd, buf, PACKETSIZE, 0, 
-                (struct sockaddr*)&remaddr, &addrlen);
-        if (recvlen > 0) 
+        string a = lst.listen();
+        if (a != "FAIL")
         {
-            buf[recvlen] = 0;
-            string packet((char *)buf);
-            cout << "Received Message:" << packet << endl;
-        }
-        if (sendto(out_sockfd, "derpderpderp", 13, 0, (struct sockaddr *)&out_addr, sizeof(out_addr)) < 0) {
-            perror("sendto failed");
-            return 1;
+            cout << a << endl;
+            snd.send(a);
         }
     }
-    return 0;
 }
 
 // oh god, process identifier (PID) vs proportional integral derivative (PID)

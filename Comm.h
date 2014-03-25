@@ -1,14 +1,31 @@
+#ifndef COMM_H
+#define COMM_H
+
+#include <iostream>
+#include <unistd.h>
 #include <string>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <string>
+#include <cstring>
+#include "sensor.h"
+#include "control.h"
 using namespace std;
 
-const int PACKETSIZE = 2048;
+extern const int PACKETSIZE;
+
+struct control;
 
 class UDPListener
 {
     public:
-        UDPListener(string port, int debug);
+        UDPListener(string port, int debug=false);
         string listen() const;
     private:
+        struct sockaddr_in remaddr;
         int in_sockfd;
         bool mDebug;
 };
@@ -16,10 +33,14 @@ class UDPListener
 class UDPSender
 {
     public:
-        UDPSender(string port, string url, int debug);
+        UDPSender(string url, string port, int debug=false);
         int send(string msg) const;
+        int sendSensor(sensor *data) const;
+        int sendControl(control *ctrl) const;
     private:
+        sockaddr_in out_addr;
         int out_sockfd;
         bool mDebug;
 };
 
+#endif
