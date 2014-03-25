@@ -44,108 +44,108 @@ int main(int argc, char *argv[])
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
 
-    snd.send("derp");
     while (true)
     {
         string a = lst.listen();
         if (a != "FAIL")
         {
-            cout << a << endl;
-            snd.send(a);
+            sensorf in_data;
+            // Parse UDP data and store into float array
+            // note that this is a horrible mistake to confuse
+            // the heading for the yaw
+            sscanf(a.c_str(), "%f %f %f %f %f %f %f %f %f\n", \
+            &(in_data.mx), &(in_data.my), &(in_data.mz), \
+            &(in_data.gx), &(in_data.gy), &(in_data.gz), \
+            &(in_data.ax), &(in_data.ay), &(in_data.az));\
+            // pid_control(in_data);
         }
     }
 }
 
-// oh god, process identifier (PID) vs proportional integral derivative (PID)
-// is gonna be soooooo confusing
-// this is the PID control algorithm, and takes as input its process identifier, like any other process.
-// a couple globals are used here because it's faster
-/*
-   int pid_control(int pid)
-   {
-   static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
-   static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);    
-
-   float pid_dt = pid_timer.read_us();
-   pid_timer.reset();
-   pid_dt /= 1000000;
-
-// get database of PID process
-OSTATIC db* pid_db = get_db(pid);
-
-OSTATIC int ax_i = search_db(pid_db, "ax");
-OSTATIC int ay_i = search_db(pid_db, "ay");
-OSTATIC int az_i = search_db(pid_db, "az");
-
-OSTATIC int gx_i = search_db(pid_db, "gx");
-OSTATIC int gy_i = search_db(pid_db, "gy");
-OSTATIC int gz_i = search_db(pid_db, "gz");
-
-// if no accelerometer data present, fail
-if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)   
+/*int pid_control(sensorf *data)
 {
-if(USBDEBUG)
-pc.printf("Could not find ax and ay in getdata's db\r\n");
-return PROC_BREAK;
-}
-float ax = (float) pid_db->records[ax_i].val;
-float ay = (float) pid_db->records[ay_i].val;
-float az = (float) pid_db->records[az_i].val;
+    static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
+    static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);    
 
-float gx = (float) pid_db->records[gx_i].val;
-float gy = (float) pid_db->records[gy_i].val;
-float gz = (float) pid_db->records[gz_i].val;    
+    float pid_dt = pid_timer.read_us();
+    pid_timer.reset();
+    pid_dt /= 1000000;
 
-ax /= ACCEL_MAGNITUDE;
-ay /= ACCEL_MAGNITUDE;
-az /= ACCEL_MAGNITUDE;
+    // get database of PID process
+    OSTATIC db* pid_db = get_db(pid);
 
-gx /= GYRO_MAGNITUDE;
-gy /= GYRO_MAGNITUDE;
-gz /= GYRO_MAGNITUDE; 
+    OSTATIC int ax_i = search_db(pid_db, "ax");
+    OSTATIC int ay_i = search_db(pid_db, "ay");
+    OSTATIC int az_i = search_db(pid_db, "az");
 
-//float pitch = 1000*atan2(az, ax);
-//float roll = 1000*atan2(az, ay);
+    OSTATIC int gx_i = search_db(pid_db, "gx");
+    OSTATIC int gy_i = search_db(pid_db, "gy");
+    OSTATIC int gz_i = search_db(pid_db, "gz");
 
-float accelAngY = atan2(az, ax);
-float accelAngX = atan2(az, ay);
+    // if no accelerometer data present, fail
+    if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)   
+    {
+        if(USBDEBUG)
+            pc.printf("Could not find ax and ay in getdata's db\r\n");
+        return PROC_BREAK;
+    }
+    float ax = (float) pid_db->records[ax_i].val;
+    float ay = (float) pid_db->records[ay_i].val;
+    float az = (float) pid_db->records[az_i].val;
 
-accelAngX -= PI/2;
-if(accelAngX < -PI)
-{
-accelAngX += 2*PI;
-}
-accelAngY -= PI/2;
-if(accelAngY < -PI)
-{
-accelAngY += 2*PI;
-}
+    float gx = (float) pid_db->records[gx_i].val;
+    float gy = (float) pid_db->records[gy_i].val;
+    float gz = (float) pid_db->records[gz_i].val;    
 
-float pitch = pitchFilter.calculate(accelAngY, gy, pid_dt);
-float roll = -rollFilter.calculate(accelAngX, -gx, pid_dt);
+    ax /= ACCEL_MAGNITUDE;
+    ay /= ACCEL_MAGNITUDE;
+    az /= ACCEL_MAGNITUDE;
 
-//set(pid_db, "pitch", (int)pitch);
-//set(pid_db, "roll", (int)roll);
+    gx /= GYRO_MAGNITUDE;
+    gy /= GYRO_MAGNITUDE;
+    gz /= GYRO_MAGNITUDE; 
 
-//pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
+    //float pitch = 1000*atan2(az, ax);
+    //float roll = 1000*atan2(az, ay);
 
-//print_db(pid_db);
+    float accelAngY = atan2(az, ax);
+    float accelAngX = atan2(az, ay);
 
-//pc.printf("Angles: %f %f\r\n", pitch, roll);
+    accelAngX -= PI/2;
+    if(accelAngX < -PI)
+    {
+        accelAngX += 2*PI;
+    }
+    accelAngY -= PI/2;
+    if(accelAngY < -PI)
+    {
+        accelAngY += 2*PI;
+    }
 
-// X-axis control via ailerons  
-float aileron_out = rollPID.calculate(roll, 0, pid_dt);
+    float pitch = pitchFilter.calculate(accelAngY, gy, pid_dt);
+    float roll = -rollFilter.calculate(accelAngX, -gx, pid_dt);
 
-// big fancy line that controls the PWM to ailerons
-AILERON_CONTROL = aileron_out + AileronCenter;
+    //set(pid_db, "pitch", (int)pitch);
+    //set(pid_db, "roll", (int)roll);
 
-float elevator_out = pitchPID.calculate(pitch, 0, pid_dt);
+    //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
 
-//pc.printf("Results: %f %f %f\r\n", elevator_out, aileron_out, pid_dt);
+    //print_db(pid_db);
 
-// big fancy line that controls the PWM to elevators
-ELEVATOR_CONTROL = elevator_out + ElevatorCenter;
+    //pc.printf("Angles: %f %f\r\n", pitch, roll);
 
-return PROC_CONTINUE;
-}
-*/
+    // X-axis control via ailerons  
+    float aileron_out = rollPID.calculate(roll, 0, pid_dt);
+
+    // big fancy line that controls the PWM to ailerons
+    AILERON_CONTROL = aileron_out + AileronCenter;
+
+    float elevator_out = pitchPID.calculate(pitch, 0, pid_dt);
+
+    //pc.printf("Results: %f %f %f\r\n", elevator_out, aileron_out, pid_dt);
+
+    // big fancy line that controls the PWM to elevators
+    ELEVATOR_CONTROL = elevator_out + ElevatorCenter;
+
+    return PROC_CONTINUE;
+}*/

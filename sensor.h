@@ -41,6 +41,15 @@ struct sensor
     char raw_data[6];
 };
 
+struct sensorf
+{
+    float ax, ay, az;
+    float gx, gy, gz;
+    float mx, my, mz;
+    float temp;
+    float pressure;
+};
+
 struct config
 {
     int frequency;
