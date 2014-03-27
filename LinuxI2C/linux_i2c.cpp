@@ -1,5 +1,7 @@
 #include "linux_i2c.h"
 
+const char *fileName = I2C_FILENAME;
+
 I2CBus::I2CBus()
 {
     if((fd = open(fileName, O_RDWR)) < 0)
@@ -12,10 +14,15 @@ I2CBus::I2CBus()
     }
 }
 
-int I2CBus::write(char i2c_addr, const char* buf, unsigned int len)
+I2CBus::~I2CBus()
+{
+	close(fd);
+}
+
+int I2CBus::i2c_write(char i2c_addr, const char* buf, unsigned int len)
 {
     int ret_len = 0;
-    if(setSlave(i2c_addr))
+    if(i2c_setSlave(i2c_addr))
     {
         ret_len = write(fd, buf, len);
         if(ret_len != len)
@@ -26,10 +33,10 @@ int I2CBus::write(char i2c_addr, const char* buf, unsigned int len)
     return ret_len;
 }
 
-int I2CBus::read(char i2c_addr, char* buf, unsigned int len)
+int I2CBus::i2c_read(char i2c_addr, char* buf, unsigned int len)
 {
     int ret_len = 0;
-    if(setSlave(i2c_addr))
+    if(i2c_setSlave(i2c_addr))
     {
         ret_len = read(fd, buf, len);
         if(ret_len != len)
@@ -40,11 +47,13 @@ int I2CBus::read(char i2c_addr, char* buf, unsigned int len)
     return ret_len;
 }
 
-bool I2CBus::setSlave(char i2c_addr)
+bool I2CBus::i2c_setSlave(char i2c_addr)
 {
-    if((ioctl(fd, I2C_SLAVE, address)) < 0)
+    if(ioctl(fd, I2C_SLAVE, (int)i2c_addr) < 0)
     {
         std::cerr << "Unable to get bus access to talk to slave\n";
+        return false;
     }
+    return true;
 }
 

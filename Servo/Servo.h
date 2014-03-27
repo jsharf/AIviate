@@ -1,5 +1,6 @@
-/* mbed R/C Servo Library
- * Copyright (c) 2007-2010 sford, cstyles
+/* RasPi R/C Servo Library
+ *
+ * Copyright (c) 2007-2014 sford, cstyles, fughilli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +25,12 @@
 #define MBED_SERVO_H
 
 #include "linux_i2c.h"
+
+    const int UPPER_PW_LIMIT = 928;
+    const int LOWER_PW_LIMIT = 0;
+    const int CENTER_PW = (UPPER_PW_LIMIT+LOWER_PW_LIMIT)/2;
+    const int PW_RANGE = UPPER_PW_LIMIT-LOWER_PW_LIMIT;
+
 
 /** Servo control class, based on a PwmOut
  *
@@ -82,11 +89,6 @@ protected:
     float _degrees;
     float _p;
     bool setPos(int s_num, unsigned int pos, unsigned char dev_addr);
-    I2CBus& i2cbus;
-    const int UPPER_PW_LIMIT = 2400;
-    const int LOWER_PW_LIMIT = 544;
-    const int CENTER_PW = (UPPER_PW_LIMIT+LOWER_PW_LIMIT)/2;
-    const int PW_RANGE = UPPER_PW_LIMIT-LOWER_PW_LIMIT;
 };
 
 #endif

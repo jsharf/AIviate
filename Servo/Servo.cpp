@@ -1,6 +1,6 @@
-/* mbed R/C Servo Library
+/* RasPi R/C Servo Library
  *
- * Copyright (c) 2007-2010 sford, cstyles
+ * Copyright (c) 2007-2014 sford, cstyles, fughilli
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,14 @@ static float clamp(float value, float min, float max) {
     }
 }
 
-Servo::Servo(int pin, int sc_addr) : i2cbus(I2CBus.getInstance()) {
+Servo::Servo(int pin, unsigned char sc_addr) {
+	_addr = sc_addr;
     _pin = pin;
-    write(0.5);
+    write(0.5f);
 }
 
 void Servo::write(float percent) {
-    setPos(_pin, PW_RANGE*percent, _addr);
+    setPos(_pin, (int)(LOWER_PW_LIMIT + PW_RANGE*percent), _addr);
     _p = clamp(percent, 0.0, 1.0);
 }
 
@@ -61,10 +62,10 @@ Servo::operator float() {
     return read();
 }
 
-bool Servo::setPos(int s_num, unsigned int pos, char dev_addr)
+bool Servo::setPos(int s_num, unsigned int pos, unsigned char dev_addr)
 {
-    char* buf[2];
+    char buf[2];
     buf[0] = ((s_num<<5)&0xE0)|((pos>>8)&0x0F);
     buf[1] = pos&0xFF;
-    i2cbus.write(dev_addr, buf, 2);
+    return (I2CBus::getInstance().i2c_write(dev_addr, buf, 2)==2);    
 }

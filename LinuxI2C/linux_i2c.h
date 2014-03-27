@@ -22,18 +22,18 @@ public:
         static I2CBus instance;
         return instance;
     }
-    int write(char i2c_addr, const char * buf, unsigned int len);
-    int read(char i2c_addr, char * buf, unsigned int len);
+    int i2c_write(char i2c_addr, const char * buf, unsigned int len);
+    int i2c_read(char i2c_addr, char * buf, unsigned int len);
 private:
     I2CBus();
+    ~I2CBus();
 
-    bool setSlave(char i2c_addr);
+    bool i2c_setSlave(char i2c_addr);
 
     I2CBus(I2CBus const&);
     void operator=(I2CBus const&);
 
     int fd;
-    const char *fileName = I2C_FILENAME;
 };
 
 #endif // LINUX_I2C_H
