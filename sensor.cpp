@@ -1,21 +1,11 @@
 #include "sensor.h"
 
-extern Serial pc;
-I2C i2c(p9, p10);
-
 char sensor_set_i2c_pointer(char addr, char reg)
 {
-    addr &= ~1;
-    if (i2c.write(addr) == 0)
+    if (I2CBus::getInstance().i2c_write(addr, &reg, 1) != 1)
     {
         if (DEBUG)
-            pc.printf("Could not write device address (set_i2c_pointer)\r\n");
-        return 0;
-    }
-    if (i2c.write(reg) == 0)
-    {
-        if (DEBUG)
-            pc.printf("Could not write reg address (set_i2c_pointer)\r\n");
+            std::cerr << "Could not set register address (set_i2c_pointer)" << std::endl;
         return 0;
     }
     return 1;
@@ -23,18 +13,17 @@ char sensor_set_i2c_pointer(char addr, char reg)
 
 int sensor_read(char addr, char reg, char *buf, int n)
 {
-    i2c.start();
     if (sensor_set_i2c_pointer(addr, reg) == 0)
     {
         if (DEBUG)
-            pc.printf("Could not set i2c pointer (read)\r\n");
+            std::cerr << "Could not set i2c pointer (read)" << std::endl;
         return 0;
     }
-    int ret = i2c.read(addr, buf,n);   
-    if (ret != 0)
+    int ret = I2CBus::getInstance().i2c_read(addr, buf, n);
+    if (ret != n)
     {
         if (DEBUG)
-            pc.printf("I2C read function failed in sensor_read\r\n");
+            std::cerr << "I2C read function failed in sensor_read" << std::endl;
         return 0;
     }
     return n;
@@ -42,26 +31,21 @@ int sensor_read(char addr, char reg, char *buf, int n)
 
 int sensor_write(char addr, char reg, char *buf, int n)
 {
-    i2c.start();
     if (sensor_set_i2c_pointer(addr, reg) == 0)
     {
         if (DEBUG)
-            pc.printf("Could not set i2c pointer (write)\r\n");
+            std::cerr << "Could not set i2c pointer (write)" << std::endl;
         return 0;
     }
-    for (int i=0; i<n; i++)
+    int i = I2CBus::getInstance().i2c_write(addr, buf, n);
+    if (i != n)
     {
-        if (i2c.write(buf[i]) == 0)
-        {   
-            i2c.stop();
-            if (DEBUG)
-                pc.printf("Only sent %i/%i bytes (write)\r\n", i, n);
-            return i;
-        }
+        if (DEBUG)
+            std::cerr << "Only sent " << i << "/" << n << " bytes (write)" << std::endl;
+        return i;
     }
-    i2c.stop();
     return n;
-    
+
 }
 
 int sensor_read_accelerometer(struct sensor* s)
@@ -69,7 +53,7 @@ int sensor_read_accelerometer(struct sensor* s)
     int ret = sensor_read(accel_w, ACCEL_X, s->raw_data, 6);
     if (ret != 6)
     {
-        pc.printf("Error, could not read (read_accelerometer)\r\n");
+        std::cerr << "Error, could not read (read_accelerometer)" << std::endl;
         return 0;
     }
     int16_t axlsb = (int16_t) s->raw_data[0];
@@ -93,7 +77,7 @@ int sensor_accelerometer_standby()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error putting accelerometer in standby (accelerometer_standby)\r\n");
+            std::cerr << "Error putting accelerometer in standby (accelerometer_standby)" << std::endl;
         return 0;
     }
     power_ctl &= 0xF7 ;
@@ -101,7 +85,7 @@ int sensor_accelerometer_standby()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error putting accelerometer in standby (accelerometer_standby)\r\n");
+            std::cerr << "Error putting accelerometer in standby (accelerometer_standby)" << std::endl;
         return 0;
     }
     return 1;
@@ -115,7 +99,7 @@ int sensor_accelerometer_measure()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error putting accelerometer in measure mode (accelerometer_measure)\r\n");
+            std::cerr << "Error putting accelerometer in measure mode (accelerometer_measure)" << std::endl;
         return 0;
     }
     power_ctl |= 0x8 ;
@@ -123,9 +107,9 @@ int sensor_accelerometer_measure()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error putting accelerometer in measure mode (accelerometer_measure)\r\n");
+            std::cerr << "Error putting accelerometer in measure mode (accelerometer_measure)" << std::endl;
         return 0;
-    }    
+    }
     return 1;
 }
 
@@ -134,23 +118,23 @@ int sensor_gyro_turnon()
     char power_ctl;
     int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
     if (DEBUG)
-        pc.printf("Gyro REG1 read: %x\r\n",power_ctl);
+        std::cerr << "Gyro REG1 read: " << std::hex << power_ctl << std::dec << std::endl;
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error turning on gyro (gyro_turnon)\r\n");
+            std::cerr << "Error turning on gyro (gyro_turnon)" << std::endl;
         return 0;
     }
     power_ctl |= 0x8;
     if (DEBUG)
-        pc.printf("Gyro REG1 write: %x\r\n",power_ctl);
+        std::cerr << "Gyro REG1 write: " << std::hex << power_ctl << std::dec << std::endl;
     ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error turning on gyro (gyro_turnon)\r\n");
+            std::cerr << "Error turning on gyro (gyro_turnon)" << std::endl;
         return 0;
-    }    
+    }
     return 1;
 }
 
@@ -161,7 +145,7 @@ int sensor_gyro_turnoff()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error turning off gyro (gyro_turnoff)\r\n");
+            std::cerr << "Error turning off gyro (gyro_turnoff)" << std::endl;
         return 0;
     }
     power_ctl &= 0xF7 ;
@@ -169,7 +153,7 @@ int sensor_gyro_turnoff()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error turning off gyro (gyro_turnoff)\r\n");
+            std::cerr << "Error turning off gyro (gyro_turnoff)" << std::endl;
         return 0;
     }
     return 1;
@@ -181,10 +165,10 @@ int sensor_read_gyro(struct sensor* s)
     int ret = sensor_read(gyro_w|1, GYRO_X, s->raw_data, 6);
     if (ret != 6)
     {
-        pc.printf("Error, could not read (sensor_read_gyro)\r\n");
+        std::cerr << "Error, could not read (sensor_read_gyro)" << std::endl;
         return 0;
     }
-    
+
     int16_t gxlsb = (int16_t) s->raw_data[0];
     int16_t gxmsb = (int16_t) s->raw_data[1];
     int16_t gylsb = (int16_t) s->raw_data[2];
@@ -209,7 +193,7 @@ int sensor_read_compass(struct sensor* s)
     int ret = sensor_read(compass_w, compass_x, s->raw_data, 6);
     if (ret == 0)
     {
-        pc.printf("Error, could not read (read_gyro)\r\n");
+        std::cerr << "Error, could not read (read_gyro)" << std::endl;
         return 0;
     }
     int16_t mxmsb = (int16_t) s->raw_data[0];
@@ -218,7 +202,7 @@ int sensor_read_compass(struct sensor* s)
     int16_t mylsb = (int16_t) s->raw_data[3];
     int16_t mzmsb = (int16_t) s->raw_data[4];
     int16_t mzlsb = (int16_t) s->raw_data[5];
-    
+
     s->mx = ((mxmsb << 8) + mxlsb);
     s->my = ((mymsb << 8) + mylsb);
     s->mz = ((mzmsb << 9) + mzlsb);
@@ -237,7 +221,7 @@ int sensor_config_accelerometer(void)
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error starting up accelerometer\r\n");
+            std::cerr << "Error starting up accelerometer" << std::endl;
         return 0;
     }
     return 8;
@@ -249,7 +233,7 @@ int sensor_config_gyro()
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error starting up gyro\r\n");
+            std::cerr << "Error starting up gyro" << std::endl;
         return 0;
     }
     return 4;
@@ -262,16 +246,16 @@ int sensor_compass_setmode(void)
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error setting compass to continuous measurement mode\r\n");
+            std::cerr << "Error setting compass to continuous measurement mode" << std::endl;
         return 0;
-    }    
-    
+    }
+
     char cra = 0x18;
     ret = sensor_write(compass_w, compass_cra, &cra, 1);
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error setting compass sampling rate (in compass_cfa)\r\n");
+            std::cerr << "Error setting compass sampling rate (in compass_cfa)" << std::endl;
         return 0;
     }
     return 1;
@@ -284,10 +268,10 @@ int sensor_compass_setidle(void)
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error setting compass to continuous measurement mode\r\n");
+            std::cerr << "Error setting compass to continuous measurement mode" << std::endl;
         return 0;
-    }    
-    return 1;   
+    }
+    return 1;
 }
 
 int sensor_config_compass(void)
@@ -296,8 +280,8 @@ int sensor_config_compass(void)
     if (ret == 0)
     {
         if (DEBUG)
-            pc.printf("Error setting up compass\r\n");
-        return 0;    
+            std::cerr << "Error setting up compass" << std::endl;
+        return 0;
     }
     return 2;
 }
