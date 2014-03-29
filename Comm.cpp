@@ -103,7 +103,7 @@ int UDPSender::send(string msg) const
 }
 int UDPSender::sendSensor(sensor *data) const
 {
-    char *str = (char *) malloc(128);
+    char str[128];
     float roll = (float)data->mx;
     float pitch = (float) data->my;
     float heading = (float) data->mz;
