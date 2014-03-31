@@ -58,6 +58,39 @@ string UDPListener::listen() const
     }
 }
 
+int UDPListener::receiveSensor(sensorf &in_data) const
+{
+    string packet = listen();
+    if (packet != "FAIL")
+    {
+        sscanf(packet.c_str(), "%f %f %f %f %f %f %f %f %f %f %f\n", \
+        &(in_data.mx), &(in_data.my), &(in_data.mz), \
+        &(in_data.gx), &(in_data.gy), &(in_data.gz), \
+        &(in_data.ax), &(in_data.ay), &(in_data.az), \
+        &(in_data.temp), &(in_data.pressure));
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int UDPListener::receiveControl(control &ctrl) const
+{
+    string packet = listen();
+    if (packet != "FAIL")
+    {
+        sscanf(packet.c_str(), "%f\t%f\t%f\t%f\n", &(ctrl.ail), \
+            &(ctrl.elev), &(ctrl.rudder), &(ctrl.throttle));
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 UDPSender::UDPSender(string url, string port, int debug) : mDebug(debug)
 {
     out_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -101,30 +134,33 @@ int UDPSender::send(string msg) const
     }
     return 1;
 }
-int UDPSender::sendSensor(sensor *data) const
+int UDPSender::sendSensor(sensor &data) const
 {
     char *str = (char *) malloc(128);
-    float roll = (float)data->mx;
-    float pitch = (float) data->my;
-    float heading = (float) data->mz;
-    float r_rate = (float) data->gx;
-    float p_rate = (float) data->gy;
-    float y_rate = (float) data->gz;
-    float ax = (float) data->ax;
-    float ay = (float) data->ay;
-    float az = (float) data->az;
-    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f\n",\
+    float roll = (float)data.mx;
+    float pitch = (float) data.my;
+    float heading = (float) data.mz;
+    float r_rate = (float) data.gx;
+    float p_rate = (float) data.gy;
+    float y_rate = (float) data.gz;
+    float ax = (float) data.ax;
+    float ay = (float) data.ay;
+    float az = (float) data.az;
+    float temperature = (float) data.temp;
+    float pressure = (float) data.pressure;
+    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f %f %f\n",\
     roll, pitch, heading, \
     r_rate, p_rate, y_rate, \
-    ax, ay, az);
+    ax, ay, az, \
+    temperature, pressure);
     string packet((const char *) str);
     return send(packet);
 }
-int UDPSender::sendControl(control *ctrl) const
+int UDPSender::sendControl(control &ctrl) const
 {
 	char send_data[128];
-    sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl->ail, ctrl->elev, ctrl->rudder,
-    ctrl->throttle);
+    sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
+    ctrl.throttle);
     string packet(send_data);
     return send(packet);
 }

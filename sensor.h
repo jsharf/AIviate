@@ -1,6 +1,9 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
+#include <ostream>
+using namespace std;
+
 #define DEBUG 1
 
 #define accel_w 0xA6
@@ -48,7 +51,9 @@ struct sensorf
     float mx, my, mz;
     float temp;
     float pressure;
+    friend ostream& operator<<(ostream &out, sensorf &rhs);
 };
+
 
 struct config
 {

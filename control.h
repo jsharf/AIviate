@@ -2,13 +2,14 @@
 #define control_h
 
 #include <iostream>
-#include <unistd.h>
+#include <ostream>
+//#include <unistd.h>
 #include <string>
 #include <sys/types.h> 
 #include <sys/socket.h>
-#include <fcntl.h>
+/*#include <fcntl.h>
 #include <netinet/in.h>
-#include <netdb.h>
+#include <netdb.h>*/
 #include "Comm.h"
 using namespace std;
 
@@ -18,6 +19,7 @@ struct control
     float elev; // elevators
     float rudder; // duh
     float throttle;
+    friend ostream& operator<<(ostream &out, control &rhs);
 }; 
 
 #endif

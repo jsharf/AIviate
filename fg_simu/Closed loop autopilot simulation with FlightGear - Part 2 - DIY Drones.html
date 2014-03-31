@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head data-layout-view="default" class="xj_layout_head">    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Closed loop autopilot simulation with FlightGear - Part 2 - DIY Drones</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="SHORTCUT ICON" href="/favicon.ico" type="image/x-icon" />
+    <meta name="description" content="Figured out how to close the loop!
+
+Programs can interface with FlightGear through FlightGear's property tree. Very powerful.
+http://wiki.flightgear.org/index.…" />
+<meta name="title" content="Closed loop autopilot simulation with FlightGear - Part 2" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://www.diydrones.com/profiles/blogs/closed-loop-autopilot-1" />
+<meta property="og:title" content="Closed loop autopilot simulation with FlightGear - Part 2" />
+<link rel="image_src" href="http://api.ning.com/icons/appatar/705844?default=705844&amp;width=64&amp;height=64" />
+<script type="text/javascript">
+    djConfig = { baseScriptUri: 'http://www.diydrones.com/xn/static-6.11.8.1/js/dojo-0.3.1-ning/', isDebug: false }
+ning = {"CurrentApp":{"premium":true,"iconUrl":"http:\/\/api.ning.com\/icons\/appatar\/705844?default=705844&width=64&height=64","url":"http:\/\/diydrones.ning.com","domains":["diydrones.com"],"online":true,"privateSource":true,"id":"diydrones","appId":"705844","description":"The largest amateur Unmanned Aerial Vehicle (UAV) community. Quadcopters, robot planes and more!","name":"DIY Drones","owner":"zlitezlite","createdDate":"2007-04-22T04:49:28.662Z","runOwnAds":false,"category":{"Quadcopter":null,"DIY":null,"Drone":null,"UAV":null,"Arduino":null,"Robotics":null,"Quadrocopter":null,"Quadricopter":null,"Quadrotor":null,"Multicopter":null},"tags":["Quadcopter","DIY","Drone","UAV","Arduino","Robotics","Quadrocopter","Quadricopter","Quadrotor","Multicopter"]},"CurrentProfile":null,"maxFileUploadSize":7};
+        (function(){
+            if (!window.ning) { return; }
+
+            var age, gender, rand, obfuscated, combined;
+
+            obfuscated = document.cookie.match(/xgdi=([^;]+)/);
+            if (obfuscated) {
+                var offset = 100000;
+                obfuscated = parseInt(obfuscated[1]);
+                rand = obfuscated / offset;
+                combined = (obfuscated % offset) ^ rand;
+                age = combined % 1000;
+                gender = (combined / 1000) & 3;
+                gender = (gender == 1 ? 'm' : gender == 2 ? 'f' : 0);
+                ning.viewer = {"age":age,"gender":gender};
+            }
+        })();
+
+        if (window.location.hash.indexOf('#!/') == 0) {
+        window.location.replace(window.location.hash.substr(2));
+    }
+    window.xg = window.xg || {};
+xg.addOnRequire = function(f) { xg.addOnRequire.functions.push(f); };
+xg.addOnRequire.functions = [];
+xg.addOnFacebookLoad = function (f) { xg.addOnFacebookLoad.functions.push(f); };
+xg.addOnFacebookLoad.functions = [];
+xg._loader = {
+    p: 0,
+    loading: function(set) { this.p++; },
+    onLoad: function(set) {
+        this.p--;
+        if (this.p == 0 && typeof(xg._loader.onDone) == 'function') {
+            xg._loader.onDone();
+        }
+    }
+};
+xg._loader.loading('xnloader');
+if (window.bzplcm) {
+    window.bzplcm._profileCount = 0;
+    window.bzplcm._profileSend = function() { if (window.bzplcm._profileCount++ == 1) window.bzplcm.send(); };
+}
+xg._loader.onDone = function() {
+        if(window.bzplcm)window.bzplcm.start('ni');
+        xg.shared.util.parseWidgets();    var addOnRequireFunctions = xg.addOnRequire.functions;
+    xg.addOnRequire = function(f) { f(); };
+    try {
+        if (addOnRequireFunctions) { dojo.lang.forEach(addOnRequireFunctions, function(onRequire) { onRequire.apply(); }); }
+    } catch (e) {
+        if(window.bzplcm)window.bzplcm.ts('nx').send();
+        throw e;
+    }
+    if(window.bzplcm) { window.bzplcm.stop('ni'); window.bzplcm._profileSend(); }
+};
+window.xn = { track: { _globals: { screen_name: null, subdomain: "diydrones", is_owner: false, is_admin: false, is_member: false, join_date: 0, request_method: "GET", trace: "adb52440-7ffc-4f0f-966d-3d086a35efe8"}, event: function() {}, pageView: function() {}, registerCompletedFlow: function() {}, registerError: function() {}, timer: function() { return { lapTime: function() {} }; }, _trackingHost: "coll.ning.com", _jsDebug: false } };</script>
+<meta name="medium" content="blog" /><link rel="alternate" type="application/atom+xml" title="Faisal Shah&#039;s Posts - DIY Drones" href="http://www.diydrones.com/profiles/blog/feed?user=01npyzmnr7jhg&amp;xn_auth=no" /><link rel="alternate" type="application/atom+xml" title="Comments - Closed loop autopilot simulation with FlightGear - Part 2 - DIY Drones" href="http://www.diydrones.com/profiles/comment/feed?attachedTo=705844%3ABlogPost%3A116835&amp;xn_auth=no" /><link rel="alternate" type="application/atom+xml" title="Top Content - DIY Drones" href="http://www.diydrones.com/leaderboards/topcontent/day?feed=yes&amp;xn_auth=no&amp;n=20&amp;images=yes&amp;imageMaxSize=240" />
+<style type="text/css" media="screen,projection">
+@import url(http://static.ning.com/socialnetworkmain/widgets/index/css/common-982.min.css?xn_version=3283718252);
+@import url(http://static.ning.com/socialnetworkmain/widgets/profiles/css/component.min.css?xn_version=2627375134);
+
+</style>
+
+<style type="text/css" media="screen,projection">
+@import url(http://static.ning.com/diydrones/instances/css/embed_1395789418.css?xn_version=201309182045);
+
+</style>
+
+<style type="text/css" media="screen,projection">
+@import url(http://static.ning.com/diydrones/instances/css/theme-982_1379539076.css?xn_version=201309182045);
+
+</style>
+
+<!--[if IE 6]>
+    <link rel="stylesheet" type="text/css" href="http://static.ning.com/socialnetworkmain/widgets/index/css/common-ie6.min.css?xn_version=4160739512" />
+<![endif]-->
+<!--[if IE 7]>
+<link rel="stylesheet" type="text/css" href="http://static.ning.com/socialnetworkmain/widgets/index/css/common-ie7.css?xn_version=2712659298" />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.diydrones.com/profiles/blog/rsd" />
+<script type="text/javascript">(function(a,b){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))window.location=b})(navigator.userAgent||navigator.vendor||window.opera,'http://www.diydrones.com/m/blogpost?id=705844%3ABlogPost%3A116835');</script></head>
+<body>
+    <div class="xj_before_content"><div id='fb-root'></div>
+<script>
+  window.fbAsyncInit = function () {
+    FB.init({
+      appId      : null, 
+      status     : true,   
+      cookie     : true,   
+      xfbml      : true,  
+      oauth      : true,   
+      channelUrl : 'http://www.diydrones.com/xn_resources/widgets/index/js/facebookapp/channel.html'
+    });
+    var n = xg.addOnFacebookLoad.functions.length;
+    for (var i = 0; i < n; i++) {
+      xg.addOnFacebookLoad.functions[i]();
+    }
+    xg.addOnFacebookLoad = function (f) { f(); };
+    xg.addOnFacebookLoad.functions = [];
+  };
+  (function() {
+    var e = document.createElement('script');
+    e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+    e.async = true;
+    document.getElementById('fb-root').appendChild(e);
+  })();
+</script>        <div id="xn_bar">
+            <div id="xn_bar_menu">
+                <div id="xn_bar_menu_branding" >
+                                    </div>
+
+                <div id="xn_bar_menu_more">
+                    <form id="xn_bar_menu_search" method="GET" action="http://www.diydrones.com/main/search/search">
+                        <fieldset>
+                            <input type="text" name="q" id="xn_bar_menu_search_query" value="Search DIY Drones" _hint="Search DIY Drones" accesskey="4" class="text xj_search_hint" />
+                            <a id="xn_bar_menu_search_submit" href="#" onclick="document.getElementById('xn_bar_menu_search').submit();return false">Search</a>
+                        </fieldset>
+                    </form>
+                </div>
+
+                            <ul id="xn_bar_menu_tabs">
+                                            <li><a href="http://www.diydrones.com/main/authorization/signUp?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1">Sign Up</a></li>
+                                                <li><a href="http://www.diydrones.com/main/authorization/signIn?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1">Sign In</a></li>
+                                    </ul>
+                        </div>
+        </div>
+            <script src="http://www35.glam.com/gad/glamadapt_jsapi.act?afid=183770529"></script>
+    <script>
+        try {
+            GlamCreateSlot("183770529", "728x90", "Ning_Top_Leaderboard");
+            GlamSetSlotData("Ning_Top_Leaderboard", "ningid=705844");
+            GlamCreateSlot("183770529", "300x250", "Ning_Top_Right");
+            GlamSetSlotData("Ning_Top_Right", "ningid=705844");
+            GlamTrack("183770529");
+        } catch (e) {}
+    </script>
+    </div>
+    <div class="xg_theme" data-layout-pack="brutus">
+        <div id="xg_themebody">
+            <div id="xg_ad_above_header" class="xg_ad xj_ad_above_header dy-displaynone">
+                    
+                </div>        
+            <div id="xg_head">
+                <div id="xg_masthead">
+                    <h1 id="xg_sitename" class="xj_site_name"><a id="application_name_header_link" href="/"><img src="http://api.ning.com:80/files/wxCEbQY1djqEhmvOxCAETzw3fdL9NkDeLotJNIir9tlvmnDW5dqRzNKoz9P-x52GwlqLlR8HxU181Io5B6p1uq42h22pEJAL/diydrones.jpg" alt="DIY Drones"></a></h1>
+                    <p id="xg_sitedesc" class="xj_site_desc"></p>
+                </div>
+                <div id="xg_navigation" class="xj_navigation"><ul>
+    <li id="xg_tab_xn115" class="xg_subtab"><a href="/"><span>Home</span></a></li><li dojoType="SubTabHover" id="xg_tab_xn9" class="xg_subtab"><a href="http://store.3drobotics.com/" target="_blank"><span>Store</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/ready-to-fly/arducopter" target="_blank" style="float:none;"><span>Ready-to-fly ArduCopter</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/ready-to-fly/arduplane" target="_blank" style="float:none;"><span>Ready-to-fly ArduPlane</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/diy-kits/arducopter" target="_blank" style="float:none;"><span>ArduCopter kits</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/autopilots" target="_blank" style="float:none;"><span>Autopilots</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/gps" target="_blank" style="float:none;"><span>GPS</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/rc-electronics" target="_blank" style="float:none;"><span>RC Electronics</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/sensors" target="_blank" style="float:none;"><span>Sensors</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/telemetry" target="_blank" style="float:none;"><span>Wireless Data</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/parts/video-slash-osd" target="_blank" style="float:none;"><span>Video/OSD</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blogs/list-of-all-diy-drones" target="_blank" style="float:none;"><span>Dealers around the world</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn78" class="xg_subtab"><a href="/profiles/blogs/a-newbies-guide-to-uavs"><span>Getting Started</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blogs/a-newbies-guide-to-uavs" style="float:none;"><span>Newbies guide to UAVs</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blog/show?id=705844:BlogPost:17789" style="float:none;"><span>About this site (rules)</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blogs/how-to-contribute-to-a-diy-drones-project-start-with-something-sm" style="float:none;"><span>How can I contribute?</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/page/awards" style="float:none;"><span>Awards</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn6" class="xg_subtab"><a href="/forum"><span>Forum</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="/forum/topic/new?target=http%3A%2F%2Fdiydrones.com%2Fforum" style="float:none;"><span>Start a Forum topic</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/forum" style="float:none;"><span>See all Forum topics</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn7" class="xg_subtab"><a href="/profiles/blog/list"><span>Blogs</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blog/new" style="float:none;"><span>Create a blog post</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blog/list" style="float:none;"><span>View all blog posts</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn66" class="xg_subtab"><a href="http://copter.ardupilot.com/" target="_blank"><span>ArduCopter</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/ready-to-fly/arducopter" target="_blank" style="float:none;"><span>Get it!</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://copter.ardupilot.com/" style="float:none;"><span>ArduCopter Manual</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://ardupilot.com/forum/viewforum.php?f=3" target="_blank" style="float:none;"><span>Support Forum</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/group/arducopterusergroup" style="float:none;"><span>ArduCopter User Group</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://dev.ardupilot.com/" target="_blank" style="float:none;"><span>Developers</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn0" class="xg_subtab"><a href="http://plane.ardupilot.com/" target="_blank"><span>ArduPlane</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="http://store.3drobotics.com/t/ready-to-fly/arduplane" target="_blank" style="float:none;"><span>Get it!</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://plane.ardupilot.com/" style="float:none;"><span>ArduPlane Manual</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://ardupilot.com/forum/viewforum.php?f=1" target="_blank" style="float:none;"><span>Support Forum</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/group/apmusergroup" style="float:none;"><span>ArduPlane User Group</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://dev.ardupilot.com/" target="_blank" style="float:none;"><span>Developers</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn89" class="xg_subtab"><a href="http://rover.ardupilot.com/" target="_blank"><span>ArduRover</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="http://rover.ardupilot.com/wiki/gettit/" style="float:none;"><span>Get it!</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://rover.ardupilot.com/" style="float:none;"><span>ArduRover Manual</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://ardupilot.com/forum/viewforum.php?f=4" target="_blank" style="float:none;"><span>Support Forum</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/group/ardurover-user-group" style="float:none;"><span>ArduRover User Group</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="http://dev.ardupilot.com/" style="float:none;"><span>Developers</span></a></li></ul></div></li><li dojoType="SubTabHover" id="xg_tab_xn3" class="xg_subtab"><a href="/profiles/members/"><span>Members</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="/leaderboards/" style="float:none;"><span>Leaderboards</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/profiles/blog/show?id=705844%3ABlogPost%3A281923" target="_blank" style="float:none;"><span>Local UAV groups</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/page/uav-devboard" style="float:none;"><span>UAV DevBoard</span></a></li></ul></div></li><li id="xg_tab_profile" class="xg_subtab"><a href="/profiles"><span>MyPage</span></a></li><li dojoType="SubTabHover" id="xg_tab_video" class="xg_subtab"><a href="/video"><span>Videos</span></a><div class="xg_subtab" style="display:none;position:absolute;"><ul class="xg_subtab" style="display:block;" ><li style="list-style:none !important;display:block;text-align:left;"><a href="/photo" style="float:none;"><span>Photos</span></a></li><li style="list-style:none !important;display:block;text-align:left;"><a href="/page/diy-drones-news-center" style="float:none;"><span>DIY Drones News Center</span></a></li></ul></div></li></ul>
+</div>
+            </div>
+            <div id="xg_ad_below_header" class="xg_ad xj_ad_below_header dy-displaynone">
+                        
+                    </div>
+            <div id="xg" class="xg_widget_profiles xg_widget_profiles_blog xg_widget_profiles_blog_show">
+            	 
+                <div id="xg_body">
+                   
+                    <div class="xj_notifications"></div>
+                    <div class="xg_column xg_span-16" id="column1">
+                        <div id="xg_canvas" class="xj_canvas">
+                            <ul class="navigation easyclear"><li><a href="http://www.diydrones.com/profiles/blog/list">All Blog Posts</a></li><li><a href="http://www.diydrones.com/profiles/blog/list?my=1">My Blog</a></li><li class="right  xg_lightborder navbutton"><a href="http://www.diydrones.com/profiles/blog/new" class="xg_sprite xg_sprite-add">Add</a></li></ul>
+<div class="xg_module xg_blog xg_blog_detail xg_blog_mypage xg_module_with_dialog">
+        <div class="xg_headline xg_headline-img xg_headline-2l">
+    <div class="ib"><span class="xg_avatar"><a class="fn url" href="http://www.diydrones.com/profile/FaisalShah"  title="Faisal Shah"><span class="dy-avatar dy-avatar-64 "><img  class="photo photo" src="http://api.ning.com:80/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=64&amp;height=64&amp;crop=1%3A1&amp;xj_user_default=1" alt="" /></span></a></span></div>
+<div class="tb"><h1>Closed loop autopilot simulation with FlightGear - Part 2</h1>
+        <ul class="navigation byline">
+            <li><a class="nolink">Posted by </a><a href="/profile/FaisalShah">Faisal Shah</a><a class="nolink"> on October 25, 2009 at 11:02pm</a></li>
+            <li><a class="xg_sprite xg_sprite-view" href="http://www.diydrones.com/profiles/blog/list?user=01npyzmnr7jhg">View Blog</a></li>
+        </ul>
+    </div>
+</div>
+    <div class="xg_module_body">
+        <div class="postbody">
+                    <div class="xg_user_generated">
+                Figured out how to close the loop!<br />
+<br />
+Programs can interface with FlightGear through FlightGear's property tree. Very powerful.<br />
+<a rel=nofollow href="http://wiki.flightgear.org/index.php/Property_Tree">http://wiki.flightgear.org/index.php/Property_Tree</a><br />
+<br />
+If you run FlightGear with the --httpd= option, it will run a webserver on http://localhost: where you can browse the property tree and refresh the current values. Alternatively, in FlightGear you can type "/", and the property tree viewer will pop up and you can view the values changing in real time. I did this to figure out the sign convention for different properties.<br />
+<br />
+The property tree can be read from and written to using a "Protocol". The protocol basically defines the format in which data is exchanged. You identify the nodes in the property tree which you want to interact with, the data types, the string formatting, and voila! Attached are the input and output .xml protocol files which I used (copy to FlightGear's data/Protocol directory).<br />
+<br />
+The data can be passed through several means, serial port, tcp, udp, etc... I chose UDP for ease.<br />
+<br />
+Here is how I ran FlightGear:<br />
+fgfs --httpd=5500 --generic=socket,out,40,localhost,5000,udp,output_protocol --generic=socket,in,45,localhost,5010,udp,input_protocol<br />
+<br />
+I made the input data rate faster than the output data rate, because I would rather have FlightGear waiting for a new input value (when it doesn't get a new input, the last one persists) than the input being buffered.<br />
+<br />
+The --generic option allows one to specify a generic protocol, which was defined in the .xml file (attached).<br />
+--generic=socket,,, ,,,.<br />
+<br />
+Attached is a .c program which I wrote to interact with the property tree and provide feedback controls to FlightGear. I've implemented simple proportional control for roll and pitch to stabilize the aircraft. Timing is driven by FlightGear. The code makes a blocking call to read UDP data. It waits until it receives a new packet, processes it, and sends a packet with control inputs back to FlightGear. Then it loops again, waiting for another packet from FlightGear. Currently, everything is hardcoded (port numbers, etc ..), but it should be trivial to make it more general purpose.<br />
+<br />
+This should provide a complete framework with which to write an autopilot controller in C.<br />
+Comments please!<br />
+<br />
+<a href="http://api.ning.com/files/-nXXBVCUYVj8p4GRXnGWhO6YjB3KIub7vokzoVwooDAN-ywWF-LtvDlXBebZxDW5tmhf9J*GKbftJBYpzZkLbYAM333*SE1D/udpserver.c">udpserver.c</a><br />
+<a href="http://api.ning.com/files/HqD*zTWnWsmZtg-4qijorZsDyLiSjQ77iId56b9B4LS32Q1EaHE4R3AAAGc-KOrRl1EjA*czcSF3mOj5HXo7udFJgtqoXqBk/output_protocol.xml">output_protocol.xml</a><br />
+<a href="http://api.ning.com/files/F9IBQ61iEQxWfycKfGT5-6hThIRmI*xRo13Z4B3auQ-0mz7UIJtpkihwwe2bOTa49qXrp8yz3GfkdxN97ox32DdO2NpVkSph/input_protocol.xml">input_protocol.xml</a>            </div>
+        </div>
+        <div class="left-panel">
+                          <script>xg.addOnRequire(function () { xg.post('/main/viewcount/update?xn_out=json', {key: '705844:BlogPost:116835', x: '50e49ec'}); });</script>                <p class="small dy-clear view-count-container">
+    <span class="view-count-label">Views:</span> <span class="view-count">2783</span></p>
+
+                            <p class="small object-detail" id="tagsList" style="display:none">Tags:<br/></p>
+            <div class="likebox likebox-ning">
+    <div class="ning-like">
+                <div class="xg_lightborder like-button like-button-3">
+            <a data-content-id="705844:BlogPost:116835"
+                        data-content-type="BlogPost"
+                        data-sign-up-url="http://www.diydrones.com/main/authorization/signUp?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1"
+                        data-like-url="/main/like/like"
+                        data-unlike-url="/main/like/unlike"
+                        data-page-type="detail" class="xg_sprite" href="#">
+                Like            </a>
+        </div>
+                <div class="like-count">
+            <a href="#" class="view-liked" _id="705844:BlogPost:116835">4 members like this</a>
+        </div>
+    </div>
+</div>
+<p class="share-links clear"><a class="xg_sprite xg_sprite-share" href="http://www.diydrones.com/main/sharing/share?id=705844%253ABlogPost%253A116835">Share</a>        <a class="post_to_twitter" href="http://twitter.com/home?status=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1" _message="Checking out &quot;Closed loop autopilot simulation with FlightGear - Part 2&quot; on DIY Drones:" _url="http://www.diydrones.com/profiles/blogs/closed-loop-autopilot-1" _urlShortenerKey="358260279809" _screenName="" _twitterAuthenticationNeeded="" _source="content" target="_blank">Twitter</a>
+        <span class="google-plusone" data-content-type="BlogPost" data-content-id="705844:BlogPost:116835" data-page-type="detail">
+    <g:plusone callback="xg_index_googlePlusOne_onPlusOne" size="medium" count="false" href="http://www.diydrones.com/xn/detail/705844:BlogPost:116835"></g:plusone>
+</span>
+
+<div class="likebox">
+    <div class="facebook-like" data-content-type="BlogPost" data-content-id="705844:BlogPost:116835" data-page-type="detail">
+        <fb:like href="http://www.diydrones.com/xn/detail/705844:BlogPost:116835" layout="button_count" show_faces="false" width="450"></fb:like>
+    </div>
+</div>
+</p>        </div>
+                    <ul class="pagination smallpagination">
+                            <li class="left"><a href="http://www.diydrones.com/profiles/blogs/closed-loop-autopilot" title="Closed loop autopilot simulation with FlightGear - Part 1">&lt; Previous Post</a></li>                             <li class="right"><a title="CHR-6d Inertial Measurement Unit (6DOF) - with" href="http://www.diydrones.com/profiles/blogs/chr6d-inertial-measurement">Next Post &gt;</a></li>
+                        </ul>
+            </div>
+</div>
+
+        <div class="xg_module">
+                                <div class="xg_module_body" id="comments"  _numComments="4" _scrollTo="">
+                    <dl _id="705844:Comment:116864" id="c_88e" class="comment vcard xg_lightborder">
+            <dt>
+                <a name="first_comment"></a><a name="comment-705844_Comment_116864" id="comment-705844_Comment_116864"></a>
+                <span class="xg_avatar"><a class="fn url" href="http://www.diydrones.com/profile/rana"  title="Rana"><span class="dy-avatar dy-avatar-48 "><img  class="photo photo" src="http://api.ning.com:80/files/tp7b0QrNTW5c6BMsPTLjaGCxDT0uFW9HfCTfWnMcVjWye7dwNc9JXwo1AQg5yMuXH4GCYHvajmmCf3gQ3bC21w__/Proud2BIndian.gif?width=48&amp;height=48&amp;crop=1%3A1" alt="" /></span></a></span>                Comment by <a href="/profile/rana" class="fn url">Rana</a> on October 26, 2009 at 4:15am            </dt>
+            <dd>
+            <div class="xg_user_generated">nice thing !<br />
+have you tested it using ur ardupilot 2.3 ?<br />
+would love to see some videos you could record using desktop recorders of your PC in which you did it.</div>            </dd>
+                    </dl>
+            <dl _id="705844:Comment:116883" id="c_37d" class="comment vcard xg_lightborder">
+            <dt>
+                <a name="comment-705844_Comment_116883" id="comment-705844_Comment_116883"></a>
+                <span class="xg_avatar"><a class="fn url" href="http://www.diydrones.com/profile/FaisalShah"  title="Faisal Shah"><span class="dy-avatar dy-avatar-48 "><img  class="photo photo" src="http://api.ning.com:80/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=48&amp;height=48&amp;crop=1%3A1&amp;xj_user_default=1" alt="" /></span></a></span>                Comment by <a href="/profile/FaisalShah" class="fn url">Faisal Shah</a> on October 26, 2009 at 8:11am            </dt>
+            <dd>
+            <div class="xg_user_generated">Nope, haven't tested it yet - but I do intend to. You can try it yourself though. If you're running a windows machine, all you need are:<br />
+1) FlightGear, <a rel=nofollow href="http://www.flightgear.org/Downloads/binary.shtml#windows">http://www.flightgear.org/Downloads/binary.shtml#windows</a><br />
+Make sure you add the proper environment variables, and \bin\Win32 to your path .<br />
+2) CygWin, <a rel=nofollow href="http://www.cygwin.com/">http://www.cygwin.com/</a> . Download installer from the top right. Make sure to include the developer options when installing.<br />
+3) The three files linked in my post, the two .xml files should be copied to \data\Protocol<br />
+4) Compile udpserver.c in cygwin using "gcc -g -o udpserver udpserver.c<br />
+5) Run FlightGear with the command in the post, bring the plane up to altitude, and put it in a crazy death spiral.<br />
+6. Run updserver.exe and watch the plane stabilize.</div>            </dd>
+                    </dl>
+            <dl _id="705844:Comment:151766" id="c_dc1" class="comment vcard xg_lightborder">
+            <dt>
+                <a name="comment-705844_Comment_151766" id="comment-705844_Comment_151766"></a>
+                <span class="xg_avatar"><a class="fn url" href="http://www.diydrones.com/profile/Recmaster"  title="Recmaster"><span class="dy-avatar dy-avatar-48 "><img  class="photo photo" src="http://api.ning.com/files/*KbCSQrCv6Q5e3cNI5r3CNVm-Xl-MZIUcgvRkeMKHiOLUUTlJFzi1Bkptn5jCeU51kV1TQ50OjyrBBGgV3x-y4oVFtwQRg4B/2.JPG?width=48&amp;height=48&amp;crop=1%3A1" alt="" /></span></a></span>                Comment by <a href="/profile/Recmaster" class="fn url">Recmaster</a> on March 31, 2010 at 1:35am            </dt>
+            <dd>
+            <div class="xg_user_generated">Hi Faisal,<br />
+<br />
+is it possible to load a firmware ArduIMU code to your's udpserver?<br />
+Otherwise I dont understend how it could help to make a openloop emulations.</div>            </dd>
+                    </dl>
+            <dl _id="705844:Comment:1307664" id="c_f5b" class="comment vcard xg_lightborder last-child">
+            <dt>
+                <a name="last_comment"></a><a name="comment-705844_Comment_1307664" id="comment-705844_Comment_1307664"></a>
+                <span class="xg_avatar"><a class="fn url" href="http://www.diydrones.com/profile/TiagoAntunes"  title="Tiago Antunes"><span class="dy-avatar dy-avatar-48 "><img  class="photo photo" src="http://api.ning.com:80/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=48&amp;height=48&amp;crop=1%3A1&amp;xj_user_default=1" alt="" /></span></a></span>                Comment by <a href="/profile/TiagoAntunes" class="fn url">Tiago Antunes</a> on June 28, 2013 at 12:03pm            </dt>
+            <dd>
+            <div class="xg_user_generated"><p>hi guys,</p>
+<p>I would like know how capture the image (Screenshot) of simulator with command line --jpg-httpd=port. Somebody know help me ??</p></div>            </dd>
+                    </dl>
+            </div>
+                    <div class="xg_module_body">
+                    <p id="add-comment">Comment</p>
+                                            <div class="comment-join">
+                            <h3>You need to be a member of DIY Drones to add comments!</h3>
+                                                <p><a href="http://www.diydrones.com/main/authorization/signUp?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1">Join DIY Drones</a></p>
+                                                </div>
+                                                        </div>
+                            <div class="xg_module_foot" id="xj_comments_footer" >
+                                            <p class="left">
+                            <a class="xg_icon xg_icon-rss" href="http://www.diydrones.com/profiles/comment/feed?attachedTo=705844%3ABlogPost%3A116835&amp;xn_auth=no">RSS</a>
+                        </p>
+                                    </div>
+                    </div>
+    
+      <input type="hidden" id="incrementViewCountEndpoint" value="http://www.diydrones.com/profiles/blog/incrementViewCount?id=705844%3ABlogPost%3A116835&amp;xn_out=json" />
+
+                        </div>
+                    </div>
+                    <div class="xg_column xg_span-5 xg_last" id="column2">
+                        <div class="xj_user_info">    <div class="xg_module" id="xg_module_account">
+        <div class="xg_module_body xg_signup xg_lightborder">
+            <p>Welcome to<br />DIY Drones</p>
+                        <p class="last-child"><big><strong><a href="http://www.diydrones.com/main/authorization/signUp?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1">Sign Up</a></strong></big><br/>or <a href="http://www.diydrones.com/main/authorization/signIn?target=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1" style="white-space:nowrap">Sign In</a></p>
+                            <div class="xg_external_signup xg_lightborder xj_signup">
+                    <p class="dy-small">Or sign in with:</p>
+                    <ul class="providers">
+            <li><a onclick="window.open('https://diydrones.networkauth.com/twitter/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D1%26provider%3Dtwitter', null, 'width=860,height=440,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no,status=no'); return false;" href="https://diydrones.networkauth.com/twitter/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D0%26provider%3Dtwitter">
+            <span class="mini-service mini-service-twitter" title="Twitter"></span>
+        </a></li>
+            <li><a onclick="window.open('https://diydrones.networkauth.com/openid/start?openid_identifier=https%3A%2F%2Fwww.google.com%2Faccounts%2Fo8%2Fid&token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D1%26provider%3Dgoogle', null, 'width=530,height=480,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no,status=no'); return false;" href="https://diydrones.networkauth.com/openid/start?openid_identifier=https%3A%2F%2Fwww.google.com%2Faccounts%2Fo8%2Fid&amp;token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D0%26provider%3Dgoogle">
+            <span class="mini-service mini-service-google" title="Google"></span>
+        </a></li>
+            <li><a onclick="window.open('https://diydrones.networkauth.com/openid/start?openid_identifier=http%3A%2F%2Fme.yahoo.com%2F&token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D1%26provider%3Dyahoo', null, 'width=500,height=480,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no,status=no'); return false;" href="https://diydrones.networkauth.com/openid/start?openid_identifier=http%3A%2F%2Fme.yahoo.com%2F&amp;token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D0%26provider%3Dyahoo">
+            <span class="mini-service mini-service-yahoo" title="Yahoo!"></span>
+        </a></li>
+            <li><a onclick="window.open('https://diydrones.networkauth.com/linkedin/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D1%26provider%3Dlinkedin', null, 'width=630,height=505,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no,status=no'); return false;" href="https://diydrones.networkauth.com/linkedin/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D0%26provider%3Dlinkedin">
+            <span class="mini-service mini-service-linkedin" title="LinkedIn"></span>
+        </a></li>
+            <li><a onclick="window.open('https://diydrones.networkauth.com/liveid/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D1%26provider%3Dwindowslive', null, 'width=960,height=590,location=no,menubar=no,resizable=yes,scrollbars=yes,toolbar=no,status=no'); return false;" href="https://diydrones.networkauth.com/liveid/start?token_url=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Fauthorization%2FprocessExternalAuth%3Ftarget%3Dhttp%253A%252F%252Fwww.diydrones.com%252Fprofiles%252Fblogs%252Fclosed-loop-autopilot-1%26source%3DsignUp%26close%3D0%26provider%3Dwindowslive">
+            <span class="mini-service mini-service-windowslive" title="Windows Live"></span>
+        </a></li>
+    </ul>
+                </div>
+                    </div>
+    </div>
+</div>
+                        <div class="xj_sidebar_content"><div class="xg_module mini-leaderboard-module xj_leaderboard_module" data-module_name="leaderboards" >
+    <div class="xg_module_head handle">
+     <h2><span>Top Content</span>&nbsp;</h2>
+    <p class="edit" style="display:none"><a class="button" href="#"><span>Edit</span></a></p>
+</div>
+<div class="xg_module_body">
+            <table class="leaderboard">
+                        <tbody>
+                                    <tr >
+                        <td class="lb-rank">1</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1600977" class="" ><img alt="Photo-mapping with UAV and GOPRO 2" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1600977" class="" >Photo-mapping with UAV and GOPRO 2</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr class="alt">
+                        <td class="lb-rank">2</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ABlogPost%3A1601823" class="" ><img alt="From 2d to 3d" src="http://api.ning.com/files/wBi6IgNyVl-r*U2FekflyPZU9U4M8S6FqKC4mLeRg6-MmmP0lOw0cmCl8BNxLSiODzcOnDAcB6PBPC4L9Yqac39uzmg6R2ng/1052689540.jpeg?xgip=500%3A0%3A2988%3A2988%3B%3B&amp;width=32&amp;height=32&amp;crop=1%3A1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ABlogPost%3A1601823" class="" >From 2d to 3d</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr >
+                        <td class="lb-rank">3</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602196" class="" ><img alt="ESRI Shapefiles in MP" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602196" class="" >ESRI Shapefiles in MP</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr class="alt">
+                        <td class="lb-rank">4</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602353" class="" ><img alt="3DR Power Module with missing part?" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602353" class="" >3DR Power Module with missing part?</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr >
+                        <td class="lb-rank">5</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1603469" class="" ><img alt="What&#039;s the difference between y6a and y6b in frame type?" src="http://api.ning.com/files/WnmTYkV-edJQFqBU8qm7C95kHwMk2***yri6yWaPIdeg0lZHWrPdrRQwlLSsOOl1piZSi0iI6vaFWAaHcmPh9vn*OEhmUpnj/image.jpg?width=32&amp;height=32&amp;crop=1%3A1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1603469" class="" >What&#039;s the difference between y6a and y6b in frame type?</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr class="alt">
+                        <td class="lb-rank">6</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602022" class="" ><img alt="Does wind badly affect the APM?" src="http://api.ning.com/files/SKcok6Dt7FrxoCjy6LI3OuOZKsChmkb1GO*9QZxSTlCvevzep1eGk4ftrWhRIEAk6cuF*rsbjlo6yTcOEz1zcA__/628276641.jpeg?xgip=8%3A0%3A487%3A487%3B%3B&amp;width=32&amp;height=32&amp;crop=1%3A1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1602022" class="" >Does wind badly affect the APM?</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr >
+                        <td class="lb-rank">7</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1591956" class="" ><img alt="Can&#039;t change baud rate on Ublox GPS" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1591956" class="" >Can&#039;t change baud rate on Ublox GPS</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr class="alt">
+                        <td class="lb-rank">8</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1603506" class="" ><img alt="fixed wing uav" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1603506" class="" >fixed wing uav</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr >
+                        <td class="lb-rank">9</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ABlogPost%3A1598803" class="" ><img alt="Rise of the clones" src="http://api.ning.com/files/tk14k37sb1I02pMZOXg1Vqpy6rBxi8xn5qm7tRwvpJ*N2LR5KlRFN2DjaAqjMDJwL0ZCIZXPM3IlpnYFh3mElQ__/image.jpg?width=32&amp;height=32&amp;crop=1%3A1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ABlogPost%3A1598803" class="" >Rise of the clones</a></h3>
+                                                                                </td>
+                    </tr>
+                                    <tr class="alt">
+                        <td class="lb-rank">10</td>
+                        <td class="lb-content">
+                            <span class="xg_avatar left"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1542328" class="" ><img alt="Altitude Hold Proving Dangerous" src="http://api.ning.com/files/-KfV47GwxR4CA2E1RkZ9*YQ9SufC1ZpmwKLRJMdW0O0EDwAD0kLjtFp4stRRsVcCeFQZWGvo0m6IZD9g3K09Zg__/459571586.png?width=32&amp;height=32&amp;crop=1%3A1&amp;xj_user_default=1" class="photo" width="32" height="32" /></a></span>
+                            <h3 class="dy-protect"><a href="http://diydrones.com/xn/detail/705844%3ATopic%3A1542328" class="" >Altitude Hold Proving Dangerous</a></h3>
+                                                                                </td>
+                    </tr>
+                            </tbody>
+        </table>
+    </div>
+    <div class="xg_module_foot">
+        <ul>
+                            <li class="left"><a class="xg_icon xg_icon-rss" href="http://www.diydrones.com/leaderboards/topcontent/day?feed=yes&amp;xn_auth=no&amp;n=20&amp;images=yes&amp;imageMaxSize=240">RSS</a></li>
+                            <li class="right"><a href="http://www.diydrones.com/leaderboards/topcontent/day">View All</a></li>
+                    </ul>
+    </div>
+</div>
+<div class="xg_module module_groups">
+    <div class="xg_module_head">
+        <h2>Groups</h2>
+    </div>
+            <div class="xg_module_body body_list">
+                            <ul class="clist">
+                        <li class="xg_lightborder ">
+        <div class="ib">
+                        <a href="http://www.diydrones.com/group/japan-arducopter-group"><img  src="http://api.ning.com:80/files/w6fPnLYMUBH79IWY9ccZGiRlLaRUx3PKIn72SxSicFbxL0JntcFKAZLwlur1-wcwX3jfIEjZkaFBenlO8UbU2A__/tsuru.jpg?crop=1%3A1&amp;width=40" width="40" height="40" alt="Japan ArduCopter Group" /></a>
+        </div>
+        <div class="tb">
+            <h3><a href="http://www.diydrones.com/group/japan-arducopter-group">Japan ArduCopter Group</a></h3>
+            <p class="xg_lightfont">86 members</p>
+                    </div>
+    </li>    <li class="xg_lightborder ">
+        <div class="ib">
+                        <a href="http://www.diydrones.com/group/iris"><img  src="http://api.ning.com:80/files/SDpMCEvPmwymeRYozfSwWhdS*0NeW4OT*L4Ecs9BPj9BOqx1-9-o5bxvJ-DUe*ChGlkCELAgCrjMkVbseEYQz0l9hQS0NKVa/Iris.jpg?crop=1%3A1&amp;width=40" width="40" height="40" alt="IRIS" /></a>
+        </div>
+        <div class="tb">
+            <h3><a href="http://www.diydrones.com/group/iris">IRIS</a></h3>
+            <p class="xg_lightfont">89 members</p>
+                    </div>
+    </li>                </ul>
+                            <ul class="clist">
+                        <li class="xg_lightborder ">
+        <div class="ib">
+                        <a href="http://www.diydrones.com/group/rtklib-users"><img class="xj_group_default" src="http://api.ning.com:80/files/t1dA0j0PPrTrKJyEjDpxkIYc1W*tCKsxzRNvjsrdim5ygToNciloe6BNv7Ri8ujoDFRfXM7jp7cO0zz-wPQRNw__/769466134.png?width=40&amp;crop=1%3A1&amp;xj_group_default=1" width="40" height="40" alt="RTKLIB Users" /></a>
+        </div>
+        <div class="tb">
+            <h3><a href="http://www.diydrones.com/group/rtklib-users">RTKLIB Users</a></h3>
+            <p class="xg_lightfont">6 members</p>
+                    </div>
+    </li>    <li class="xg_lightborder ">
+        <div class="ib">
+                        <a href="http://www.diydrones.com/group/pixhawk"><img  src="http://api.ning.com:80/files/Ct9BE8xQpt4Mx6vlhtJRKzL1uZCbcnPqmeV1SzhsSpsGA3BXYeoYMHso3MwWFgBzDGgs6wL9FhlwoT0jl0rmwN2yFLF5zVu4/pixhawk_1.jpg?crop=1%3A1&amp;width=40" width="40" height="40" alt="PIXHAWK" /></a>
+        </div>
+        <div class="tb">
+            <h3><a href="http://www.diydrones.com/group/pixhawk">PIXHAWK</a></h3>
+            <p class="xg_lightfont">24 members</p>
+                    </div>
+    </li>                </ul>
+                            <ul class="clist">
+                        <li class="xg_lightborder last-child">
+        <div class="ib">
+                        <a href="http://www.diydrones.com/group/agricultural-uavs"><img  src="http://api.ning.com:80/files/ZiuGnh5cpGxA4oVYIro210XDTe4CtlcBq4HKkTdAVSZzplhuxAKV2fNfJ3*EVyLn2h1a3i3P0K4pdZDdrTHamV50-P0l2Kcs/Hayden.jpg?crop=1%3A1&amp;width=40" width="40" height="40" alt="Agricultural UAVs" /></a>
+        </div>
+        <div class="tb">
+            <h3><a href="http://www.diydrones.com/group/agricultural-uavs">Agricultural UAVs</a></h3>
+            <p class="xg_lightfont">399 members</p>
+                    </div>
+    </li>                </ul>
+                    </div>
+                <div class="xg_module_foot">
+                <ul>
+                                            <li class="right"><a href="http://www.diydrones.com/groups">View All</a></li>
+                                    </ul>
+            </div>
+        </div>
+<div class="xg_module html_module module_text xg_reset" data-module_name="text"
+        >
+            <div class="xg_module_body xg_user_generated">
+            <center><script async="" src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" type="text/javascript">
+</script><!-- 160x600, created 2/27/08 -->
+<ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px" data-ad-client="ca-pub-0947133831108044" data-ad-slot="8264636492"></ins><script type="text/javascript">
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script></center>
+        </div>
+            </div>
+<div class="xg_module html_module module_text xg_reset" data-module_name="text"
+        >
+            <div class="xg_module_body xg_user_generated">
+            <div><b><a href="http://api.ning.com:80/files/SXg*KXVI-h9KNByrOB3cDG3vGty4g8xJZKSkODeCwwL0bubi8k3rB09vkKo9OZDaCe39V3kZTCa81mhvFqmlcg__/miniuavbadge_MED.jpg" target="_self"><img src="http://api.ning.com:80/files/SXg*KXVI-h9KNByrOB3cDG3vGty4g8xJZKSkODeCwwL0bubi8k3rB09vkKo9OZDaCe39V3kZTCa81mhvFqmlcg__/miniuavbadge_MED.jpg?width=120" width="120" class="align-right"  /></a>Season Two of the</b> <b>Trust Time Trial (T3) Contest</b>&#160;</div>
+<div>A list of all T3 contests is <a href="http://diydrones.com/notes/Contests">here</a>.</div>
+        </div>
+            </div>
+</div>
+                    </div>
+                </div>
+            </div>
+            <div id="xg_foot">
+                <div id="xg_footcontent">
+                    <div class="xj_foot_content"><p class="left">
+    © 2014             &nbsp; Created by <a href="/profile/zlitezlite">Chris Anderson</a>.            &nbsp;
+    Powered by<a href="http://www.ning.com/?utm_source=online&amp;utm_content=bazfooter&amp;utm_campaign=9000&amp;utm_medium=prd&amp;utm_term=diydrones"><img src="http://static.ning.com/socialnetworkmain/widgets/index/gfx/Ning_GlamSocial_blk.png?xn_version=972119103" width="144" height="15" alt="Ning" class="poweredbylogo" /></a>
+    </p>
+    <p class="right xg_lightfont">
+                    <a href="http://www.diydrones.com/main/embeddable/list">Badges</a> &nbsp;|&nbsp;
+                        <a href="http://www.diydrones.com/main/authorization/signUp?target=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Findex%2Freport" dojoType="PromptToJoinLink" _joinPromptText="Please sign up or sign in to complete this step." _hasSignUp="true" _signInUrl="http://www.diydrones.com/main/authorization/signIn?target=http%3A%2F%2Fwww.diydrones.com%2Fmain%2Findex%2Freport">Report an Issue</a> &nbsp;|&nbsp;
+                        <a href="http://www.diydrones.com/main/authorization/termsOfService?previousUrl=http%3A%2F%2Fwww.diydrones.com%2Fprofiles%2Fblogs%2Fclosed-loop-autopilot-1">Terms of Service</a>
+            </p>
+</div>
+                </div>
+            </div>
+			<div id="xg_ad_below_footer" class="xg_ad xj_ad_below_footer dy-displaynone">
+				
+			</div>
+        </div>
+    </div>
+    <div class="xj_after_content"><div id="xj_baz17246" class="xg_theme"></div>
+<div id="xg_overlay" style="display:none;">
+<!--[if lte IE 6.5]><iframe></iframe><![endif]-->
+</div>
+<!--googleoff: all--><noscript>
+	<style type="text/css" media="screen">
+        #xg { position:relative;top:120px; }
+        #xn_bar { top:120px; }
+	</style>
+	<div class="errordesc noscript">
+		<div>
+            <h3><strong>Hello, you need to enable JavaScript to use DIY Drones.</strong></h3>
+            <p>Please check your browser settings or contact your system administrator.</p>
+			<img src="/xn_resources/widgets/index/gfx/jstrk_off.gif" alt="" height="1" width="1" />
+		</div>
+	</div>
+</noscript><!--googleon: all-->
+<script type="text/javascript" src="http://static.ning.com/socialnetworkmain/widgets/lib/core.min.js?xn_version=2765273374"></script>        <script>
+            var sources = ["http:\/\/static.ning.com\/diydrones\/instances\/shared\/js\/set_common.min.js?r=1379539038","http:\/\/static.ning.com\/diydrones\/instances\/shared\/js\/set_shared_c0.min.js?r=1379539040","http:\/\/static.ning.com\/diydrones\/instances\/shared\/js\/set_sidebar_u.min.js?r=1379539340"];
+            var numSources = sources.length;
+            var heads = document.getElementsByTagName('head');
+            var node = heads.length > 0 ? heads[0] : document.body;
+            var onloadFunctionsObj = {};
+
+            var createScriptTagFunc = function(source) {
+                var script = document.createElement('script');
+                
+                script.type = 'text/javascript';
+                                var currentOnLoad = function() {xg._loader.onLoad(source);};
+                if (script.readyState) { //for IE (including IE9)
+                    script.onreadystatechange = function() {
+                        if (script.readyState == 'complete' || script.readyState == 'loaded') {
+                            script.onreadystatechange = null;
+                            currentOnLoad();
+                        }
+                    }
+                } else {
+                   script.onerror = script.onload = currentOnLoad;
+                }
+
+                script.src = source;
+                node.appendChild(script);
+            };
+
+            for (var i = 0; i < numSources; i++) {
+                xg._loader.loading(sources[i]);
+                createScriptTagFunc(sources[i]);
+            }
+        </script>
+    <script type="text/javascript">
+if (!ning._) {ning._ = {}}
+ning._.compat = { encryptedToken: "<empty>" }
+ning._.CurrentServerTime = "2014-03-25T23:17:41+00:00";
+ning._.probableScreenName = "";
+ning._.domains = {
+    base: 'ning.com',
+    ports: { http: '80', ssl: '443' }
+};
+ning.loader.version = '201309182045_27'; // DEP-8473:b598fc0 33
+djConfig.parseWidgets = false;
+</script>
+        <script type="text/javascript">
+          (function() {
+            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+            po.src = 'https://apis.google.com/js/plusone.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+          })();
+        </script>
+        <script type="text/javascript">
+        xg.token = '';
+xg.canTweet = false;
+xg.cdnHost = 'static.ning.com';
+xg.version = '201309182045';
+xg.useMultiCdn = true;
+xg.staticRoot = 'socialnetworkmain';
+xg.xnTrackHost = "coll.ning.com";
+    xg.cdnDefaultPolicyHost = 'static';
+    xg.cdnPolicy = [];
+xg.global = xg.global || {};
+xg.global.currentMozzle = 'profiles';
+xg.global.userCanInvite = false;
+xg.global.requestBase = '';
+xg.global.locale = 'en_US';
+xg.num_thousand_sep = ",";
+xg.num_decimal_sep = ".";
+(function() {
+    dojo.addOnLoad(function() {
+        if(window.bzplcm) { window.bzplcm.ts('hr'); window.bzplcm._profileSend(); }
+            });
+            ning.loader.require('xg.profiles.blog.show', 'xg.index.like.likeButton', 'xg.index.tweet.PostToTwitterLink', 'xg.index.googlePlusOne', 'xg.index.facebookLike', function() { xg._loader.onLoad('xnloader'); });
+    })();    </script>
+<script type="text/javascript" src="http://static.ning.com/socialnetworkmain/widgets/lib/js/thrift/xn_track.min.js?xn_version=2965732102"></script>
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-2371190-1";
+urchinTracker();
+</script>
+
+
+<script type="text/javascript">
+x$("#xg_sitename").after(x$("#header_link"));
+setTimeout("x$('#header_link').fadeIn()",1000);
+</script>    <script>
+        xg.tg = function () {
+    var cookies = document.cookie.split(';');
+    var re = /^\s*xn_visitor=([^\s]*)/;
+    var vc = '';
+    for (i in cookies) {
+        if (!cookies.hasOwnProperty(i)) {
+            continue
+        }
+        var match = re.exec(cookies[i]);
+        if (match) {
+            vc = match[1];
+            break;
+        }
+    }
+    var image = new Image();
+    var user = vc + ',,diydrones';
+    image.src = 'http://www22.glam.com/cTagsImgCmd.act?gname=ning_user&gvalue=' + user + '&gtid=5000059145&gcmd=setc&gexpires=604800&ord=' + Math.random()*1E16;
+    };
+    xg.tg();
+    </script>
+    <script type="text/javascript">
+    var ning_gaq = ning_gaq || [];
+    ning_gaq.push(['_ning_ga._setAccount', 'UA-2270114-6']);
+    ning_gaq.push(['_ning_ga._setNamespace', 'ning']);
+                    ning_gaq.push(['_ning_ga._setCustomVar', 1, 'member_type', 'anonymous', 3]);
+            ning_gaq.push(['_ning_ga._setCustomVar', 2, 'subdomain', 'diydrones.ning.com', 3]);
+            ning_gaq.push(['_ning_ga._setCustomVar', 3, 'category', 'technology', 3]);
+            ning_gaq.push(['_ning_ga._setCustomVar', 4, 'product_type', 'pro', 3]);
+            ning_gaq.push(['_ning_ga._setCustomVar', 5, 'ab_variation', '-', 3]);    ning_gaq.push(['_ning_ga._trackPageview']);
+    ning_gaq.push(['_ning_ga._trackPageLoadTime']);
+
+    (function() {
+     var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+     ga.src = "http://static.ning.com/socialnetworkmain/widgets/index/js/google-analytics/ga.js?xn_version=201309182045";
+     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+     })();
+</script>
+<script>
+  var _comscore = _comscore || [];
+  _comscore.push({ c1: "2", c2: "6770185" });
+  (function() {
+    var s = document.createElement("script"), el = document.getElementsByTagName("script")[0]; s.async = true;
+    s.src = (document.location.protocol == "https:" ? "https://sb" : "http://b") + ".scorecardresearch.com/beacon.js";
+    el.parentNode.insertBefore(s, el);
+  })();
+</script>
+<noscript>
+  <img src="http://b.scorecardresearch.com/p?c1=2&c2=6770185&cv=2.0&cj=1" />
+</noscript>
+
+</div>
+</body>
+</html>

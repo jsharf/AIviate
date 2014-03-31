@@ -1,6 +1,7 @@
 #ifndef COMM_H
 #define COMM_H
 
+#include <ostream>
 #include <iostream>
 #include <unistd.h>
 #include <string>
@@ -24,6 +25,8 @@ class UDPListener
     public:
         UDPListener(string port, int debug=false);
         string listen() const;
+        int receiveSensor(sensorf &in_data) const;
+        int receiveControl(control &ctrl) const;
     private:
         struct sockaddr_in remaddr;
         int in_sockfd;
@@ -35,8 +38,8 @@ class UDPSender
     public:
         UDPSender(string url, string port, int debug=false);
         int send(string msg) const;
-        int sendSensor(sensor *data) const;
-        int sendControl(control *ctrl) const;
+        int sendSensor(sensor &data) const;
+        int sendControl(control &ctrl) const;
     private:
         sockaddr_in out_addr;
         int out_sockfd;

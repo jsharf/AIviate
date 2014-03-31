@@ -1,6 +1,14 @@
 #include "control.h"
 using namespace std;
 
+ostream& operator<<(ostream &out, control &rhs)
+{
+    out << "CTRL: \n{\n\t ail: " << rhs.ail << "\n\t elev: " << rhs.elev \
+    << "\n\t rudder: " << rhs.rudder << "\n\t throttle: " << rhs.throttle \
+    << "\n}" << endl;
+    return out;
+}
+
 /* 
    Control Loop
    ============
@@ -43,26 +51,45 @@ int main(int argc, char *argv[])
 
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
+    sensor out_data;
+
+    // fake values
+    out_data.ax = 1;
+    out_data.ay = 2;
+    out_data.az = 3;
+
+    out_data.gx = 10;
+    out_data.gy = 20;
+    out_data.gz = 30;
+
+    out_data.mx = 100;
+    out_data.my = 200;
+    out_data.mz = 300;
+
+    out_data.temp = 451;
+    out_data.pressure = 900;
+
+    sensorf in_data;
+    control ctrl;
 
     while (true)
     {
+        snd.sendSensor(out_data);
         string a = lst.listen();
         if (a != "FAIL")
         {
-            sensorf in_data;
-            // Parse UDP data and store into float array
             // note that this is a horrible mistake to confuse
             // the heading for the yaw
-            sscanf(a.c_str(), "%f %f %f %f %f %f %f %f %f\n", \
-            &(in_data.mx), &(in_data.my), &(in_data.mz), \
-            &(in_data.gx), &(in_data.gy), &(in_data.gz), \
-            &(in_data.ax), &(in_data.ay), &(in_data.az));\
-            // pid_control(in_data);
+            snd.sendSensor(out_data);
+            lst.receiveSensor(in_data);
+            cout << in_data << endl;
+            //pid_control(in_data, ctrl);
+            //snd.sendControl(ctrl);
         }
     }
 }
 
-/*int pid_control(sensorf *data)
+/*int pid_control(sensorf &data, control &ctrl)
 {
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
     static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);    

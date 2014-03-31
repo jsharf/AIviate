@@ -1,8 +1,21 @@
 #include "sensor.h"
 
-extern Serial pc;
+/*extern Serial pc;
 I2C i2c(p9, p10);
+*/
 
+ostream& operator<<(ostream &out, sensorf &rhs)
+{
+    out << "SENSORF: \n{\n\t ax: " \
+    << rhs.ax << "\n\t ay: " << rhs.ay << "\n\t az: " << rhs.az \
+    << "\n\t gx: " << rhs.gx << "\n\t gy: " << rhs.gy << "\n\t gz: " << rhs.gz \
+    << "\n\t mx: " << rhs.mx << "\n\t my: " << rhs.my << "\n\t mz: " << rhs.mz \
+    << "\n\t temp: " << rhs.temp << "\n\t pressure: " << rhs.pressure \
+    << "\n}" << endl;
+    return out;
+}
+
+/*
 char sensor_set_i2c_pointer(char addr, char reg)
 {
     addr &= ~1;
@@ -318,3 +331,4 @@ int sensor_config_gy80(struct config *c)
     ret |= sensor_config_barometer();
     return ret;
 }
+*/
