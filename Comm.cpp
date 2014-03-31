@@ -136,18 +136,16 @@ int UDPSender::send(string msg) const
 }
 int UDPSender::sendSensor(sensor &data) const
 {
-    char *str = (char *) malloc(128);
-    float roll = (float)data.mx;
-    float pitch = (float) data.my;
-    float heading = (float) data.mz;
-    float r_rate = (float) data.gx;
-    float p_rate = (float) data.gy;
-    float y_rate = (float) data.gz;
-    float ax = (float) data.ax;
-    float ay = (float) data.ay;
-    float az = (float) data.az;
-    float temperature = (float) data.temp;
-    float pressure = (float) data.pressure;
+    char str[128];
+    float roll = (float)data->mx;
+    float pitch = (float) data->my;
+    float heading = (float) data->mz;
+    float r_rate = (float) data->gx;
+    float p_rate = (float) data->gy;
+    float y_rate = (float) data->gz;
+    float ax = (float) data->ax;
+    float ay = (float) data->ay;
+    float az = (float) data->az;
     snprintf(str, 128, "%f %f %f %f %f %f %f %f %f %f %f\n",\
     roll, pitch, heading, \
     r_rate, p_rate, y_rate, \
