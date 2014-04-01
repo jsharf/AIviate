@@ -34,7 +34,7 @@ int sensor_read(char addr, char reg, char *buf, int n)
             std::cerr << "Could not set i2c pointer (read)" << std::endl;
         return 0;
     }
-    int ret = I2CBus::getInstance().i2c_read(addr, buf, n);
+    int ret = I2CBus::getInstance().i2c_read(buf, n);
     if (ret != n)
     {
         if (DEBUG)

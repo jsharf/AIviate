@@ -23,7 +23,7 @@ public:
         return instance;
     }
     int i2c_write(char i2c_addr, const char * buf, unsigned int len);
-    int i2c_read(char i2c_addr, char * buf, unsigned int len);
+    int i2c_read(char * buf, unsigned int len);
 private:
     I2CBus();
     ~I2CBus();
