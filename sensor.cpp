@@ -15,7 +15,6 @@ ostream& operator<<(ostream &out, sensorf &rhs)
     return out;
 }
 
-/*
 char sensor_set_i2c_pointer(char addr, char reg)
 {
     if (I2CBus::getInstance().i2c_write(addr, &reg, 1) != 1)
@@ -35,7 +34,7 @@ int sensor_read(char addr, char reg, char *buf, int n)
             std::cerr << "Could not set i2c pointer (read)" << std::endl;
         return 0;
     }
-    int ret = I2CBus::getInstance().i2c_read(addr, buf, n);
+    int ret = I2CBus::getInstance().i2c_read(buf, n);
     if (ret != n)
     {
         if (DEBUG)
@@ -66,7 +65,7 @@ int sensor_write(char addr, char reg, char *buf, int n)
 
 int sensor_read_accelerometer(struct sensor* s)
 {
-    int ret = sensor_read(accel_w, ACCEL_X, s->raw_data, 6);
+    int ret = sensor_read(accel_addr, ACCEL_X, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (read_accelerometer)" << std::endl;
@@ -89,16 +88,16 @@ int sensor_read_accelerometer(struct sensor* s)
 int sensor_accelerometer_standby()
 {
     char power_ctl;
-    int ret = sensor_read(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
-    if (ret == 0)
+    int ret = sensor_read(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error putting accelerometer in standby (accelerometer_standby)" << std::endl;
         return 0;
     }
     power_ctl &= 0xF7 ;
-    ret = sensor_write(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
-    if (ret == 0)
+    ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error putting accelerometer in standby (accelerometer_standby)" << std::endl;
@@ -111,16 +110,16 @@ int sensor_accelerometer_standby()
 int sensor_accelerometer_measure()
 {
     char power_ctl;
-    int ret = sensor_read(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
-    if (ret == 0)
+    int ret = sensor_read(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error putting accelerometer in measure mode (accelerometer_measure)" << std::endl;
         return 0;
     }
     power_ctl |= 0x8 ;
-    ret = sensor_write(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
-    if (ret == 0)
+    ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error putting accelerometer in measure mode (accelerometer_measure)" << std::endl;
@@ -132,10 +131,10 @@ int sensor_accelerometer_measure()
 int sensor_gyro_turnon()
 {
     char power_ctl;
-    int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
+    int ret = sensor_read(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (DEBUG)
         std::cerr << "Gyro REG1 read: " << std::hex << power_ctl << std::dec << std::endl;
-    if (ret == 0)
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error turning on gyro (gyro_turnon)" << std::endl;
@@ -144,8 +143,8 @@ int sensor_gyro_turnon()
     power_ctl |= 0x8;
     if (DEBUG)
         std::cerr << "Gyro REG1 write: " << std::hex << power_ctl << std::dec << std::endl;
-    ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
-    if (ret == 0)
+    ret = sensor_write(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error turning on gyro (gyro_turnon)" << std::endl;
@@ -157,16 +156,16 @@ int sensor_gyro_turnon()
 int sensor_gyro_turnoff()
 {
     char power_ctl;
-    int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
-    if (ret == 0)
+    int ret = sensor_read(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error turning off gyro (gyro_turnoff)" << std::endl;
         return 0;
     }
     power_ctl &= 0xF7 ;
-    ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
-    if (ret == 0)
+    ret = sensor_write(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
+    if (ret != 1)
     {
         if (DEBUG)
             std::cerr << "Error turning off gyro (gyro_turnoff)" << std::endl;
@@ -178,7 +177,7 @@ int sensor_gyro_turnoff()
 int sensor_read_gyro(struct sensor* s)
 {
     //char buf = GYRO_X;
-    int ret = sensor_read(gyro_w|1, GYRO_X, s->raw_data, 6);
+    int ret = sensor_read(gyro_addr, GYRO_X, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (sensor_read_gyro)" << std::endl;
@@ -206,8 +205,8 @@ int sensor_read_gyro(struct sensor* s)
 
 int sensor_read_compass(struct sensor* s)
 {
-    int ret = sensor_read(compass_w, compass_x, s->raw_data, 6);
-    if (ret == 0)
+    int ret = sensor_read(compass_addr, compass_x, s->raw_data, 6);
+    if (ret != 6)
     {
         std::cerr << "Error, could not read (read_gyro)" << std::endl;
         return 0;
@@ -240,7 +239,7 @@ int sensor_config_accelerometer(void)
             std::cerr << "Error starting up accelerometer" << std::endl;
         return 0;
     }
-    return 8;
+    return 1<<3;
 }
 int sensor_config_gyro()
 {
@@ -252,13 +251,13 @@ int sensor_config_gyro()
             std::cerr << "Error starting up gyro" << std::endl;
         return 0;
     }
-    return 4;
+    return 1<<2;
 }
 
 int sensor_compass_setmode(void)
 {
     char mode = 0;
-    int ret = sensor_write(compass_w, compass_mode, &mode, 1);
+    int ret = sensor_write(compass_addr, compass_mode, &mode, 1);
     if (ret == 0)
     {
         if (DEBUG)
@@ -267,7 +266,7 @@ int sensor_compass_setmode(void)
     }
 
     char cra = 0x18;
-    ret = sensor_write(compass_w, compass_cra, &cra, 1);
+    ret = sensor_write(compass_addr, compass_cra, &cra, 1);
     if (ret == 0)
     {
         if (DEBUG)
@@ -280,7 +279,7 @@ int sensor_compass_setmode(void)
 int sensor_compass_setidle(void)
 {
     char mode = 2;
-    int ret = sensor_write(compass_w, compass_mode, &mode, 1);
+    int ret = sensor_write(compass_addr, compass_mode, &mode, 1);
     if (ret == 0)
     {
         if (DEBUG)
@@ -299,26 +298,21 @@ int sensor_config_compass(void)
             std::cerr << "Error setting up compass" << std::endl;
         return 0;
     }
-    return 2;
+    return 1<<1;
 }
 
 int sensor_config_barometer(void)
 {
-    return 1;
+    return 1<<0;
 }
 
 int sensor_config_gy80(struct config *c)
 {
     // return value is a 4-bit number: AGCB, indicating
     // the return values of accel, gyro, compass, and barometer
-    i2c.frequency(c->frequency);
     int ret = sensor_config_accelerometer();
     ret |= sensor_config_gyro();
     ret |= sensor_config_compass();
     ret |= sensor_config_barometer();
     return ret;
-}
-<<<<<<< HEAD
-*/
-=======
->>>>>>> 0a36630a22125178fce1f04fe655b911a7680e6f
+}

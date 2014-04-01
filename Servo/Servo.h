@@ -31,49 +31,24 @@
     const int CENTER_PW = (UPPER_PW_LIMIT+LOWER_PW_LIMIT)/2;
     const int PW_RANGE = UPPER_PW_LIMIT-LOWER_PW_LIMIT;
 
-
-/** Servo control class, based on a PwmOut
- *
- * Example:
- * @code
- * // Continuously sweep the servo through it's full range
- * #include "mbed.h"
- * #include "Servo.h"
- *
- * Servo myservo(p21);
- *
- * int main() {
- *     while(1) {
- *         for(int i=0; i<100; i++) {
- *             myservo = i/100.0;
- *             wait(0.01);
- *         }
- *         for(int i=100; i>0; i--) {
- *             myservo = i/100.0;
- *             wait(0.01);
- *         }
- *     }
- * }
- * @endcode
- */
 class Servo {
 
 public:
-    /** Create a servo object connected to the specified PwmOut pin
+    /** Create a servo object connected to the specified pin on the specified i2c servo controller
      *
-     * @param pin PwmOut pin to connect to
+     * @param pin on the controller to connect to
      */
     Servo(int pin, unsigned char sc_addr = 0x39);
 
-    /** Set the servo position, normalised to it's full range
+    /** Set the servo position, normalised to its full range
      *
-     * @param percent A normalised number 0.0-1.0 to represent the full range.
+     * @param percent A normalised number 0.0-1.0 to represent the position within the  full range.
      */
     void write(float percent);
 
-    /**  Read the servo motors current position
+    /**  Read the servo motor's current position
      *
-     * @param returns A normalised number 0.0-1.0  representing the full range.
+     * @param returns a normalised number 0.0-1.0 representing the position within the full range.
      */
     float read();
 
