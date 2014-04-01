@@ -33,12 +33,10 @@ over the network.
    These are sort of self-explanatory
  */
 
-
 void usage()
 {
     cerr << "control <in_port> <out_addr> <out_port>" << endl;
 }
-
 
 int main(int argc, char *argv[])
 {
