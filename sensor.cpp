@@ -65,7 +65,7 @@ int sensor_write(char addr, char reg, char *buf, int n)
 
 int sensor_read_accelerometer(struct sensor* s)
 {
-    int ret = sensor_read(accel_w, ACCEL_X, s->raw_data, 6);
+    int ret = sensor_read(accel_addr, ACCEL_X, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (read_accelerometer)" << std::endl;
@@ -88,7 +88,7 @@ int sensor_read_accelerometer(struct sensor* s)
 int sensor_accelerometer_standby()
 {
     char power_ctl;
-    int ret = sensor_read(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
+    int ret = sensor_read(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -96,7 +96,7 @@ int sensor_accelerometer_standby()
         return 0;
     }
     power_ctl &= 0xF7 ;
-    ret = sensor_write(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
+    ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -110,7 +110,7 @@ int sensor_accelerometer_standby()
 int sensor_accelerometer_measure()
 {
     char power_ctl;
-    int ret = sensor_read(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
+    int ret = sensor_read(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -118,7 +118,7 @@ int sensor_accelerometer_measure()
         return 0;
     }
     power_ctl |= 0x8 ;
-    ret = sensor_write(accel_w, ACCEL_POWER_CTL, &power_ctl, 1);
+    ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -131,7 +131,7 @@ int sensor_accelerometer_measure()
 int sensor_gyro_turnon()
 {
     char power_ctl;
-    int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
+    int ret = sensor_read(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (DEBUG)
         std::cerr << "Gyro REG1 read: " << std::hex << power_ctl << std::dec << std::endl;
     if (ret != 1)
@@ -143,7 +143,7 @@ int sensor_gyro_turnon()
     power_ctl |= 0x8;
     if (DEBUG)
         std::cerr << "Gyro REG1 write: " << std::hex << power_ctl << std::dec << std::endl;
-    ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
+    ret = sensor_write(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -156,7 +156,7 @@ int sensor_gyro_turnon()
 int sensor_gyro_turnoff()
 {
     char power_ctl;
-    int ret = sensor_read(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
+    int ret = sensor_read(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -164,7 +164,7 @@ int sensor_gyro_turnoff()
         return 0;
     }
     power_ctl &= 0xF7 ;
-    ret = sensor_write(gyro_w, GYRO_CTRL_REG1, &power_ctl, 1);
+    ret = sensor_write(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret != 1)
     {
         if (DEBUG)
@@ -177,7 +177,7 @@ int sensor_gyro_turnoff()
 int sensor_read_gyro(struct sensor* s)
 {
     //char buf = GYRO_X;
-    int ret = sensor_read(gyro_w|1, GYRO_X, s->raw_data, 6);
+    int ret = sensor_read(gyro_addr, GYRO_X, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (sensor_read_gyro)" << std::endl;
@@ -205,7 +205,7 @@ int sensor_read_gyro(struct sensor* s)
 
 int sensor_read_compass(struct sensor* s)
 {
-    int ret = sensor_read(compass_w, compass_x, s->raw_data, 6);
+    int ret = sensor_read(compass_addr, compass_x, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (read_gyro)" << std::endl;
@@ -257,7 +257,7 @@ int sensor_config_gyro()
 int sensor_compass_setmode(void)
 {
     char mode = 0;
-    int ret = sensor_write(compass_w, compass_mode, &mode, 1);
+    int ret = sensor_write(compass_addr, compass_mode, &mode, 1);
     if (ret == 0)
     {
         if (DEBUG)
@@ -266,7 +266,7 @@ int sensor_compass_setmode(void)
     }
 
     char cra = 0x18;
-    ret = sensor_write(compass_w, compass_cra, &cra, 1);
+    ret = sensor_write(compass_addr, compass_cra, &cra, 1);
     if (ret == 0)
     {
         if (DEBUG)
@@ -279,7 +279,7 @@ int sensor_compass_setmode(void)
 int sensor_compass_setidle(void)
 {
     char mode = 2;
-    int ret = sensor_write(compass_w, compass_mode, &mode, 1);
+    int ret = sensor_write(compass_addr, compass_mode, &mode, 1);
     if (ret == 0)
     {
         if (DEBUG)
