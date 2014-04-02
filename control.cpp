@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     out_data.pressure = 900;
 
     sensorf in_data;
-    control ctrl;
 
     while (true)
     {
