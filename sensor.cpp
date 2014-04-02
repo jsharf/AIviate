@@ -1,8 +1,22 @@
-#include "sensor.h"
+#include "sensor.h"#include "Comm.cpp"
 
 /*extern Serial pc;
 I2C i2c(p9, p10);
-*/
+*/void usage(){    cerr << "sensor <out_addr> <out_port>" << endl;}int main(int argc, char *argv[])
+{
+    if (argc != 3)
+    {
+        cerr << "Wrong number of arguments" << endl;
+        usage();
+        return 1;
+    }    int sensor_config_ret = sensor_config_gy80(NULL);    if(sensor_config_ret != 0xF)    {        cerr << "GY80 module failed initialization with code " << sensor_config_ret << endl;    }
+    UDPSender snd(argv[1], argv[2]);
+    sensor out_data;
+    while (true)
+    {        // insert code to load out_data with sensor data from i2c        // before it is sent with snd.sendSensor()        sensor_read_accelerometer(out_data);        sensor_read_gyro(out_data);        sensor_read_compass(out_data);
+        snd.sendSensor(out_data);
+    }
+}
 
 ostream& operator<<(ostream &out, sensorf &rhs)
 {
@@ -206,7 +220,7 @@ int sensor_read_compass(struct sensor* s)
     int ret = sensor_read(compass_addr, compass_x, s->raw_data, 6);
     if (ret != 6)
     {
-        std::cerr << "Error, could not read (read_gyro)" << std::endl;
+        std::cerr << "Error, could not read (read_compass)" << std::endl;
         return 0;
     }
     int16_t mxmsb = (int16_t) s->raw_data[0];

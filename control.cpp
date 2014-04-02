@@ -9,7 +9,7 @@ ostream& operator<<(ostream &out, control &rhs)
     return out;
 }
 
-/* 
+/*
    Control Loop
    ============
 
@@ -49,37 +49,19 @@ int main(int argc, char *argv[])
 
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
-    sensor out_data;
-
-    // fake values
-    out_data.ax = 1;
-    out_data.ay = 2;
-    out_data.az = 3;
-
-    out_data.gx = 10;
-    out_data.gy = 20;
-    out_data.gz = 30;
-
-    out_data.mx = 100;
-    out_data.my = 200;
-    out_data.mz = 300;
-
-    out_data.temp = 451;
-    out_data.pressure = 900;
+    control out_control;
 
     sensorf in_data;
 
     while (true)
     {
-        snd.sendSensor(out_data);
         string a = lst.listen();
         if (a != "FAIL")
         {
             // note that this is a horrible mistake to confuse
             // the heading for the yaw
-            snd.sendSensor(out_data);
-            lst.receiveSensor(in_data);
-            cout << in_data << endl;
+            lst.receiveSensor(in_data);            out_control.ail = in_data.ax/512 + 0.5;            out_control.elev = in_data.ay/512 + 0.5;            out_control.rudder = in_data.az/512 + 0.5;            snd.sendControl(out_control);
+            //cout << in_data << endl;
             //pid_control(in_data, ctrl);
             //snd.sendControl(ctrl);
         }
@@ -89,7 +71,7 @@ int main(int argc, char *argv[])
 /*int pid_control(sensorf &data, control &ctrl)
 {
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
-    static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);    
+    static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);
 
     float pid_dt = pid_timer.read_us();
     pid_timer.reset();
@@ -107,7 +89,7 @@ int main(int argc, char *argv[])
     OSTATIC int gz_i = search_db(pid_db, "gz");
 
     // if no accelerometer data present, fail
-    if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)   
+    if (ax_i == -1 || ay_i == -1 || az_i == -1 || gx_i == -1 || gy_i == -1 || gz_i == -1)
     {
         if(USBDEBUG)
             pc.printf("Could not find ax and ay in getdata's db\r\n");
@@ -119,7 +101,7 @@ int main(int argc, char *argv[])
 
     float gx = (float) pid_db->records[gx_i].val;
     float gy = (float) pid_db->records[gy_i].val;
-    float gz = (float) pid_db->records[gz_i].val;    
+    float gz = (float) pid_db->records[gz_i].val;
 
     ax /= ACCEL_MAGNITUDE;
     ay /= ACCEL_MAGNITUDE;
@@ -127,7 +109,7 @@ int main(int argc, char *argv[])
 
     gx /= GYRO_MAGNITUDE;
     gy /= GYRO_MAGNITUDE;
-    gz /= GYRO_MAGNITUDE; 
+    gz /= GYRO_MAGNITUDE;
 
     //float pitch = 1000*atan2(az, ax);
     //float roll = 1000*atan2(az, ay);
@@ -158,7 +140,7 @@ int main(int argc, char *argv[])
 
     //pc.printf("Angles: %f %f\r\n", pitch, roll);
 
-    // X-axis control via ailerons  
+    // X-axis control via ailerons
     float aileron_out = rollPID.calculate(roll, 0, pid_dt);
 
     // big fancy line that controls the PWM to ailerons
