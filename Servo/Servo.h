@@ -24,7 +24,7 @@
 #ifndef MBED_SERVO_H
 #define MBED_SERVO_H
 
-#include "linux_i2c.h"
+#include "../LinuxI2C/linux_i2c.h"
 
     const int UPPER_PW_LIMIT = 928;
     const int LOWER_PW_LIMIT = 0;

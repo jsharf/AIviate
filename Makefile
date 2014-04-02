@@ -19,8 +19,14 @@ clean:
 sensor_test: sensor_test.o sensor.o linux_i2c.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor_test ./Test/sensor_test.o sensor.o ./LinuxI2C/linux_i2c.o
 
-sensor_test.o:
+sensor_test.o: ./Test/SensorTest.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Test/sensor_test.o ./Test/SensorTest.cpp
+
+servo_test: servo_test.o Servo.o linux_i2c.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o servo_test ./Test/servo_test.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
+
+servo_test.o: ./Test/ServoTest.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Test/servo_test.o ./Test/ServoTest.cpp
 
 ####################
 #                  #
