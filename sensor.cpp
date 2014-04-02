@@ -45,15 +45,9 @@ int sensor_read(char addr, char reg, char *buf, int n)
 }
 
 int sensor_write(char addr, char reg, char *buf, int n)
-{
-    if (sensor_set_i2c_pointer(addr, reg) == 0)
-    {
-        if (DEBUG)
-            std::cerr << "Could not set i2c pointer (write)" << std::endl;
-        return 0;
-    }
-    int i = I2CBus::getInstance().i2c_write(addr, buf, n);
-    if (i != n)
+{    char buf2[n+1];    memcpy(buf2+1, buf1, n);    buf2[0] = reg;
+    int i = I2CBus::getInstance().i2c_write(addr, buf2, n+1);
+    if (i != (n+1))
     {
         if (DEBUG)
             std::cerr << "Only sent " << i << "/" << n << " bytes (write)" << std::endl;
@@ -117,7 +111,7 @@ int sensor_accelerometer_measure()
             std::cerr << "Error putting accelerometer in measure mode (accelerometer_measure)" << std::endl;
         return 0;
     }
-    power_ctl |= 0x8 ;
+    power_ctl |= 0x8;
     ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
