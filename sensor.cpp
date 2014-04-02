@@ -45,7 +45,11 @@ int sensor_read(char addr, char reg, char *buf, int n)
 }
 
 int sensor_write(char addr, char reg, char *buf, int n)
-{    char buf2[n+1];    memcpy(buf2+1, buf1, n);    buf2[0] = reg;
+{
+    char buf2[n+1];
+    memcpy(buf2+1, buf, n);
+    buf2[0] = reg;
+
     int i = I2CBus::getInstance().i2c_write(addr, buf2, n+1);
     if (i != (n+1))
     {
@@ -309,4 +313,4 @@ int sensor_config_gy80(struct config *c)
     ret |= sensor_config_compass();
     ret |= sensor_config_barometer();
     return ret;
-}
+}
