@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
-    control out_control;
+    control out_control;
 
     sensorf in_data;
 
@@ -60,7 +60,18 @@ int main(int argc, char *argv[])
         {
             // note that this is a horrible mistake to confuse
             // the heading for the yaw
-            lst.receiveSensor(in_data);            out_control.ail = in_data.ax/512 + 0.5;            out_control.elev = in_data.ay/512 + 0.5;            out_control.rudder = in_data.az/512 + 0.5;            snd.sendControl(out_control);
+            lst.receiveSensor(in_data);
+	    cerr << "SENSORF: \n{\n\t ax: " \
+	    << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
+	    << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
+	    << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
+	    << "\n\t temp: " << in_data.temp << "\n\t pressure: " << in_data.pressure \
+	    << "\n}" << endl;
+            out_control.ail = in_data.ax/512 + 0.5;
+            out_control.elev = in_data.ay/512 + 0.5;
+            out_control.rudder = in_data.az/512 + 0.5;
+	    out_control.throttle = in_data.mx/32768 + 0.5;
+            snd.sendControl(out_control);
             //cout << in_data << endl;
             //pid_control(in_data, ctrl);
             //snd.sendControl(ctrl);
