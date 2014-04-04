@@ -88,7 +88,7 @@ int sensor_gyro_turnoff();
 int sensor_read_compass(struct sensor *s);
 int sensor_compass_setmode(void);
 
-int sensor_read_barometer(void);
+int sensor_read_barometer(struct sensor *s);
 
 int sensor_config_accelerometer(void);
 int sensor_config_gyro();

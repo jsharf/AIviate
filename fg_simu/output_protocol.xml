@@ -20,8 +20,8 @@
       </chunk>
 
       <chunk>
-         <name>/orientation/heading-deg</name>
-         <node>/orientation/heading-deg</node>
+         <name>/instrumentation/magnetic-compass/indicated-heading-deg</name>
+         <node>/instrumentation/magnetic-compass/indicated-heading-deg</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
@@ -49,7 +49,7 @@
        
       <chunk>
          <name>/accelerations/pilot/x-accel-fps_sec</name>
-         <node>/orientation/roll-rate-degps</node>
+         <node>/accelerations/pilot/x-accel-fps_sec</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
@@ -68,6 +68,13 @@
          <format>%f</format>
       </chunk>
        
+      <chunk>
+         <name>/instrumentation/altimeter/indicated-altitude-ft</name>
+         <node>/accelerations/pilot/z-accel-fps_sec</node>
+         <type>float</type>
+         <format>%f</format>
+      </chunk>
+
    </output>
       
 </generic>

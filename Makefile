@@ -8,7 +8,7 @@ INCLUDES=./,./LinuxI2C/,./Servo/
 all: sensor control actuator
 
 clean:
-	rm -f control source *.o
+	rm -f control source actuator *.o
 
 ####################
 #                  #

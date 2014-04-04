@@ -1,15 +1,10 @@
 #include "sensor.h"
 #include "Comm.cpp"
 
-/*extern Serial pc;
-I2C i2c(p9, p10);
-*/
-
 void usage()
 {
     cerr << "sensor <out_addr> <out_port>" << endl;
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -19,30 +14,25 @@ int main(int argc, char *argv[])
         usage();
         return 1;
     }
-
     int sensor_config_ret = sensor_config_gy80(NULL);
-
     if(sensor_config_ret != 0xF)
     {
         cerr << "GY80 module failed initialization with code " << sensor_config_ret << endl;
     }
-
     UDPSender snd(argv[1], argv[2]);
     sensor out_data;
-
     while (true)
     {
-        // insert code to load out_data with sensor data from i2c
-        // before it is sent with snd.sendSensor()
+        // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
         sensor_read_gyro(&out_data);
         sensor_read_compass(&out_data);
-
-
+        // Send sensor data over UDP to target
         snd.sendSensor(out_data);
     }
 }
 
+// Helps debugging with sensor structs
 ostream& operator<<(ostream &out, sensorf &rhs)
 {
     out << "SENSORF: \n{\n\t ax: " \
@@ -54,23 +44,12 @@ ostream& operator<<(ostream &out, sensorf &rhs)
     return out;
 }
 
-char sensor_set_i2c_pointer(char addr, char reg)
+int sensor_read(char addr, char reg, char *buf, int n)
 {
     if (I2CBus::getInstance().i2c_write(addr, &reg, 1) != 1)
     {
         if (DEBUG)
             std::cerr << "Could not set register address (set_i2c_pointer)" << std::endl;
-        return 0;
-    }
-    return 1;
-}
-
-int sensor_read(char addr, char reg, char *buf, int n)
-{
-    if (sensor_set_i2c_pointer(addr, reg) == 0)
-    {
-        if (DEBUG)
-            std::cerr << "Could not set i2c pointer (read)" << std::endl;
         return 0;
     }
     int ret = I2CBus::getInstance().i2c_read(buf, n);
@@ -88,7 +67,6 @@ int sensor_write(char addr, char reg, char *buf, int n)
     char buf2[n+1];
     memcpy(buf2+1, buf, n);
     buf2[0] = reg;
-
     int i = I2CBus::getInstance().i2c_write(addr, buf2, n+1);
     if (i != (n+1))
     {
@@ -97,7 +75,6 @@ int sensor_write(char addr, char reg, char *buf, int n)
         return i;
     }
     return n;
-
 }
 
 int sensor_read_accelerometer(struct sensor* s)
@@ -114,7 +91,6 @@ int sensor_read_accelerometer(struct sensor* s)
     int16_t aymsb = (int16_t) s->raw_data[3];
     int16_t azlsb = (int16_t) s->raw_data[4];
     int16_t azmsb = (int16_t) s->raw_data[5];
-
     s->ax = ((axmsb << 8) + axlsb);
     s->ay = ((aymsb << 8) + aylsb);
     s->az = ((azmsb << 8) + azlsb);
@@ -213,30 +189,27 @@ int sensor_gyro_turnoff()
 
 int sensor_read_gyro(struct sensor* s)
 {
-    //char buf = GYRO_X;
     int ret = sensor_read(gyro_addr, GYRO_X, s->raw_data, 6);
     if (ret != 6)
     {
         std::cerr << "Error, could not read (sensor_read_gyro)" << std::endl;
         return 0;
     }
-
     int16_t gxlsb = (int16_t) s->raw_data[0];
     int16_t gxmsb = (int16_t) s->raw_data[1];
     int16_t gylsb = (int16_t) s->raw_data[2];
     int16_t gymsb = (int16_t) s->raw_data[3];
     int16_t gzlsb = (int16_t) s->raw_data[4];
     int16_t gzmsb = (int16_t) s->raw_data[5];
-
-#ifdef USE_PREDETERMINED_ZERO_VALS
-    s->gx = (int16_t)((gxmsb << 8) | gxlsb) - GX_0;
-    s->gy = (int16_t)((gymsb << 8) | gylsb) - GY_0;
-    s->gz = (int16_t)((gzmsb << 8) | gzlsb) - GZ_0;
-#else
-    s->gx = (int16_t)((gxmsb << 8) | gxlsb) - s->gx0;
-    s->gy = (int16_t)((gymsb << 8) | gylsb) - s->gy0;
-    s->gz = (int16_t)((gzmsb << 8) | gzlsb) - s->gz0;
-#endif
+    #ifdef USE_PREDETERMINED_ZERO_VALS
+        s->gx = (int16_t)((gxmsb << 8) | gxlsb) - GX_0;
+        s->gy = (int16_t)((gymsb << 8) | gylsb) - GY_0;
+        s->gz = (int16_t)((gzmsb << 8) | gzlsb) - GZ_0;
+    #else
+        s->gx = (int16_t)((gxmsb << 8) | gxlsb) - s->gx0;
+        s->gy = (int16_t)((gymsb << 8) | gylsb) - s->gy0;
+        s->gz = (int16_t)((gzmsb << 8) | gzlsb) - s->gz0;
+    #endif
     return 1;
 }
 
@@ -254,15 +227,15 @@ int sensor_read_compass(struct sensor* s)
     int16_t mylsb = (int16_t) s->raw_data[3];
     int16_t mzmsb = (int16_t) s->raw_data[4];
     int16_t mzlsb = (int16_t) s->raw_data[5];
-
     s->mx = ((mxmsb << 8) + mxlsb);
     s->my = ((mymsb << 8) + mylsb);
-    s->mz = ((mzmsb << 9) + mzlsb);
+    s->mz = ((mzmsb << 8) + mzlsb);
     return 1;
 }
 
-int sensor_read_barometer(void)
+int sensor_read_barometer(struct sensor* s)
 {
+    //int ret = sensor_read(barometer_w, bar
     return 0;
 }
 
