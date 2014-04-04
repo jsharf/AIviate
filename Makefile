@@ -10,6 +10,16 @@ all: sensor control actuator
 clean:
 	rm -f control source actuator *.o
 
+#########################
+#                       #
+#    Static Analysis    #
+#                       #
+#########################
+
+lint:
+	./Test/cppcheck --enable=all ./ 2>report.txt && echo "DONE, Error log in \
+	report.txt" && less report.txt
+
 ####################
 #                  #
 #    UNIT TESTS    #
