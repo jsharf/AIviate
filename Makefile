@@ -34,15 +34,15 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor SensorManager.o \
+ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
 	./LinuxI2C/linux_i2c.o Sensor.o
 
-control: control.o Comm.o Sensor.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o control control.o Comm.o Sensor.o
+ai-control: control.o Comm.o Sensor.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o
 
-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
+ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
 
 SensorManager.o: SensorManager.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o SensorManager.o SensorManager.cpp
