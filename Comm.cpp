@@ -1,6 +1,5 @@
 #include "Comm.h"
 using namespace std;
-
 const int PACKETSIZE = 2048;
 
 UDPListener::UDPListener(string port, int debug) : mDebug(debug)
@@ -24,8 +23,7 @@ UDPListener::UDPListener(string port, int debug) : mDebug(debug)
     in_addr.sin_addr.s_addr = INADDR_ANY;
     in_addr.sin_port = htons(portno);
 
-    if (bind(in_sockfd, (struct sockaddr *) &in_addr,
-                sizeof(in_addr)) < 0) 
+    if (::bind(in_sockfd, (struct sockaddr *) &in_addr, sizeof(in_addr)) < 0) 
     {
         if (mDebug)
             cerr << "ERROR on binding" << endl; 
@@ -63,11 +61,11 @@ int UDPListener::receiveSensor(sensorf &in_data) const
     string packet = listen();
     if (packet != "FAIL")
     {
-        sscanf(packet.c_str(), "%f %f %f %f %f %f %f %f %f %f %f\n", \
+        sscanf(packet.c_str(), "%f %f %f %f %f %f %f %f %f %f\n", \
         &(in_data.mx), &(in_data.my), &(in_data.mz), \
         &(in_data.gx), &(in_data.gy), &(in_data.gz), \
         &(in_data.ax), &(in_data.ay), &(in_data.az), \
-        &(in_data.temp), &(in_data.pressure));
+        &(in_data.altitude));
         return 0;
     }
     else
@@ -146,13 +144,12 @@ int UDPSender::sendSensor(sensor &data) const
     float ax = (float) data.ax;
     float ay = (float) data.ay;
     float az = (float) data.az;
-    float temperature = (float) data.temp;
-    float pressure = (float) data.pressure; 
-    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f %f %f\n",\
+    float altitude = (float) data.altitude;
+    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f %f\n",\
     roll, pitch, heading, \
     r_rate, p_rate, y_rate, \
     ax, ay, az, \
-    temperature, pressure);
+    altitude);
     string packet((const char *) str);
     return send(packet);
 }

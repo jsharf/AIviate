@@ -15,4 +15,4 @@
     {
         cerr << "Failed to set control surface positions." << endl;
         return false;
-    }    return true;}
+    }    return true;}
