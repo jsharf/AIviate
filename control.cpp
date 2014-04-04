@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	    << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
 	    << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
 	    << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
-	    << "\n\t temp: " << in_data.temp << "\n\t pressure: " << in_data.pressure \
+	    << "\n\t altitude: " << in_data.altitude \
 	    << "\n}" << endl;
             out_control.ail = in_data.ax/512 + 0.5;
             out_control.elev = in_data.ay/512 + 0.5;
