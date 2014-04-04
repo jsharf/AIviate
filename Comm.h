@@ -12,10 +12,9 @@
 #include <netdb.h>
 #include <string>
 #include <cstring>
-#include "sensor.h"
+#include "Sensor.h"
 #include "control.h"
 using namespace std;
-
 extern const int PACKETSIZE;
 
 struct control;

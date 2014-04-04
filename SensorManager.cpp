@@ -1,5 +1,4 @@
-#include "sensor.h"
-#include "Comm.cpp"
+#include "SensorManager.h"
 
 void usage()
 {
@@ -30,18 +29,6 @@ int main(int argc, char *argv[])
         // Send sensor data over UDP to target
         snd.sendSensor(out_data);
     }
-}
-
-// Helps debugging with sensor structs
-ostream& operator<<(ostream &out, sensorf &rhs)
-{
-    out << "SENSORF: \n{\n\t ax: " \
-    << rhs.ax << "\n\t ay: " << rhs.ay << "\n\t az: " << rhs.az \
-    << "\n\t gx: " << rhs.gx << "\n\t gy: " << rhs.gy << "\n\t gz: " << rhs.gz \
-    << "\n\t mx: " << rhs.mx << "\n\t my: " << rhs.my << "\n\t mz: " << rhs.mz \
-    << "\n\t temp: " << rhs.temp << "\n\t pressure: " << rhs.pressure \
-    << "\n}" << endl;
-    return out;
 }
 
 int sensor_read(char addr, char reg, char *buf, int n)
@@ -176,7 +163,7 @@ int sensor_gyro_turnoff()
             std::cerr << "Error turning off gyro (gyro_turnoff)" << std::endl;
         return 0;
     }
-    power_ctl &= 0xF7 ;
+    power_ctl &= 0xF7;
     ret = sensor_write(gyro_addr, GYRO_CTRL_REG1, &power_ctl, 1);
     if (ret != 1)
     {

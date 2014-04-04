@@ -3,6 +3,8 @@
 
 #include <ostream>
 #include "LinuxI2C/linux_i2c.h"
+#include "Sensor.h"
+#include "Comm.h"
 #include <iostream>
 using namespace std;
 
@@ -42,26 +44,6 @@ const int GY_0 = -12;
 const int GZ_0 = 3;
 #endif
 
-struct sensor
-{
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
-    int16_t gx0, gy0, gz0;
-    int16_t mx, my, mz;
-    int16_t temp;
-    int16_t pressure;
-    char raw_data[6];
-};
-
-struct sensorf
-{
-    float ax, ay, az;
-    float gx, gy, gz;
-    float mx, my, mz;
-    float temp;
-    float pressure;
-    friend ostream& operator<<(ostream &out, sensorf &rhs);
-};
 
 
 struct config

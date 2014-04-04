@@ -10,24 +10,14 @@ all: sensor control actuator
 clean:
 	rm -f control source actuator *.o
 
-#########################
-#                       #
-#    Static Analysis    #
-#                       #
-#########################
-
-lint:
-	./Test/cppcheck --enable=all ./ 2>report.txt && echo "DONE, Error log in \
-	report.txt" && less report.txt
-
 ####################
 #                  #
 #    UNIT TESTS    #
 #                  #
 ####################
 
-sensor_test: sensor_test.o sensor.o linux_i2c.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor_test ./Test/sensor_test.o sensor.o ./LinuxI2C/linux_i2c.o
+sensor_test: sensor_test.o SensorManager.o linux_i2c.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor_test ./Test/sensor_test.o SensorManager.o ./LinuxI2C/linux_i2c.o
 
 sensor_test.o: ./Test/SensorTest.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Test/sensor_test.o ./Test/SensorTest.cpp
@@ -44,17 +34,21 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-sensor: sensor.o ./LinuxI2C/linux_i2c.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor sensor.o ./LinuxI2C/linux_i2c.o
+sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor SensorManager.o \
+	./LinuxI2C/linux_i2c.o Sensor.o
 
-control: control.o Comm.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o control control.o Comm.o
+control: control.o Comm.o Sensor.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o control control.o Comm.o Sensor.o
 
 actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
 
-sensor.o: sensor.cpp
-	g++ $(FLAGS) $(DEBUG) -c -o sensor.o sensor.cpp
+SensorManager.o: SensorManager.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o SensorManager.o SensorManager.cpp
+
+Sensor.o: Sensor.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o Sensor.o Sensor.cpp
 
 Comm.o: Comm.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o Comm.o Comm.cpp
