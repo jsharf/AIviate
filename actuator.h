@@ -6,6 +6,8 @@
 #include <iostream>
 using namespace std;
 
-void executeCommand(control &in_command);
+#define ACTUATOR_NUM_AXES (4)
+
+bool executeCommand(control &in_command);
 
 #endif //ACTUATOR_H
