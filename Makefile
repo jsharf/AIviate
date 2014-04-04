@@ -5,10 +5,10 @@ FLAGS=-std=c++0x
 
 INCLUDES=./,./LinuxI2C/,./Servo/
 
-all: sensor control actuator
+all: ai-sensor ai-control ai-actuator
 
 clean:
-	rm -f control source actuator *.o
+	rm -f ai-control ai-source ai-actuator *.o
 
 ####################
 #                  #
