@@ -1,6 +1,8 @@
-/* RasPi R/C Servo Library
+/* RasPi I2C R/C Servo Library
  *
  * Copyright (c) 2007-2014 sford, cstyles, fughilli
+ *
+ * Adapted from the Mbed R/C Servo Library by sford and cstyles
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +67,11 @@ Servo& Servo::operator= (Servo& rhs) {
 Servo::operator float() {
     return read();
 }
+
+/* Edit this to fit the packet type of the chosen I2C servo controller
+ * This configuration matches the servo controller firmware available (for MSP430) at:
+ * https://www.github.com/Fughilli/ServoController
+ */
 
 bool Servo::setPos(int s_num, unsigned int pos, unsigned char dev_addr)
 {

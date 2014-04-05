@@ -5,7 +5,7 @@
 #include <ostream>
 //#include <unistd.h>
 #include <string>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/socket.h>
 /*#include <fcntl.h>
 #include <netinet/in.h>
@@ -20,6 +20,7 @@ struct control
     float rudder; // duh
     float throttle;
     friend ostream& operator<<(ostream &out, control &rhs);
-}; 
+    static const control zero;
+};
 
 #endif
