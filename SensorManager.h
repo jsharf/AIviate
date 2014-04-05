@@ -1,5 +1,5 @@
-#ifndef SENSOR_H
-#define SENSOR_H
+#ifndef SENSOR_MANAGER_H
+#define SENSOR_MANAGER_H
 
 #include <ostream>
 #include "LinuxI2C/linux_i2c.h"
@@ -79,4 +79,4 @@ int sensor_config_barometer(void);
 
 int sensor_config_gy80(struct config *c);
 
-#endif //SENSOR_H
+#endif //SENSOR_MANAGER_H
