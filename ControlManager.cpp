@@ -35,33 +35,47 @@ int main(int argc, char *argv[])
 
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
-    
+
     control out_control;
     sensorf in_data;
-    
-    int t = time(NULL);
+
+    time_t prev_time = time(NULL), cur_time;
+    float delta;
+
+    // TODO: add a check for initial recepion of data to prevent first delta from being very large (i.e., if ai-sensor is started after ai-control).
+
     while (true)
     {
         string a = lst.listen();
         if (a != "FAIL")
         {
+            // Listen for sensor data
             lst.receiveSensor(in_data);
+
+            // Write debug output
             cerr << "SENSORF: \n{\n\t ax: " \
             << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
             << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
             << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
             << "\n\t altitude: " << in_data.altitude \
             << "\n}" << endl;
-            int delta = t-time(NULL);
+
+            // Recalculate delta
+            cur_time = time(NULL);
+            delta = difftime(cur_time, prev_time);
+            prev_time = cur_time;
+
+            // Run the PID loop
             pid_control(in_data, out_control, delta);
-            t = time(NULL);
+
+            // Send the control structure
             out_control.throttle = 1.0f;
             snd.sendControl(out_control);
         }
     }
 }
 
-void pid_control(sensorf &data, control &ctrl, int delta)
+void pid_control(sensorf &data, control &ctrl, float delta)
 {
     // Filter Constants
     static float rollFK = 0.5;
@@ -77,13 +91,13 @@ void pid_control(sensorf &data, control &ctrl, int delta)
     static float pitchKP = 1;
     static float pitchKI = 0;
     static float pitchKD = 0.1;
-    
+
     // PID Yaw Constants
     static float yawKP = 1;
     static float yawKI = 0;
     static float yawKD = 0.1;
 
-    static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK), 
+    static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK),
     yawFilter(yawFK);
     static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP,
     pitchKI, pitchKD), yawPID(yawKP, yawKI, yawKD);
