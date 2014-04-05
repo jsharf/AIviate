@@ -3,7 +3,7 @@ DEBUG=-Wall -pedantic -Wextra
 
 FLAGS=-std=c++0x
 
-INCLUDES=./,./LinuxI2C/,./Servo/
+INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters
 
 all: ai-sensor ai-control ai-actuator
 
@@ -38,8 +38,10 @@ ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
 	./LinuxI2C/linux_i2c.o Sensor.o
 
-ai-control: ControlManager.o control.o  Comm.o Sensor.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o ControlManager.o
+ai-control: ControlManager.o control.o  Comm.o Sensor.o Filters/Filters.o\
+PIDControl/PIDControl.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o \
+    ControlManager.o Filters/Filters.o PIDControl/PIDControl.o
 
 ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
@@ -67,3 +69,10 @@ linux_i2c.o: ./LinuxI2C/linux_i2c.cpp
 
 Servo.o: ./Servo/Servo.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Servo/Servo.o ./Servo/Servo.cpp
+Filters/Filters.o: Filters/Filters.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Filters/Filters.o \
+./Filters/Filters.cpp
+
+PIDControl/PIDControl.o: PIDControl/PIDControl.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./PIDControl/PIDControl.o \
+./PIDControl/PIDControl.cpp

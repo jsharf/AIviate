@@ -10,6 +10,9 @@
 #include <ctime>
 #include "Comm.h"
 #include <cmath>
+#include <ctime>
+#include "Filters/Filters.h"
+#include "PIDControl/PIDControl.h"
 using namespace std;
 
 #define OPTIMIZE
@@ -18,6 +21,8 @@ using namespace std;
 #else
   #define OSTATIC 
 #endif
+
+const float PI = 3.1415926535f;
 
 struct control
 {
@@ -28,5 +33,6 @@ struct control
     friend ostream& operator<<(ostream &out, control &rhs);
     static const control zero;
 };
+
 
 #endif

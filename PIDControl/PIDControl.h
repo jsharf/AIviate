@@ -1,6 +1,8 @@
 #ifndef PIDCONTROL_H
 #define PIDCONTROL_H
 
+#include <cmath>
+
 #define I_ZERO_THRESHOLD 0.001
 
 class PIDController

@@ -1,4 +1,3 @@
-#include <math.h>
 #include "PIDControl.h"
 
 PIDController::PIDController(float pCoeff, float iCoeff, float dCoeff, float iDecayFactor)
@@ -19,7 +18,7 @@ float PIDController::calculate(float x, float target_x, float dt)
     state.integral += (error_x * dt);
     float I = (state.integral * coefficients.i);
     state.integral/=coefficients.idf;
-    if(abs(state.integral) < I_ZERO_THRESHOLD)
+    if(std::abs(state.integral) < I_ZERO_THRESHOLD)
     {
         state.integral = 0.0f;
     }
