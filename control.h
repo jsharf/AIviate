@@ -7,11 +7,17 @@
 #include <string>
 #include <sys/types.h> 
 #include <sys/socket.h>
-/*#include <fcntl.h>
-#include <netinet/in.h>
-#include <netdb.h>*/
+#include <ctime>
 #include "Comm.h"
+#include <cmath>
 using namespace std;
+
+#define OPTIMIZE
+#ifdef OPTIMIZE
+ #define OSTATIC static
+#else
+  #define OSTATIC 
+#endif
 
 struct control
 {

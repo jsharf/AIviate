@@ -38,6 +38,8 @@ void usage()
     cerr << "control <in_port> <out_addr> <out_port>" << endl;
 }
 
+static int t;
+
 int main(int argc, char *argv[])
 {
     if (argc != 4)
@@ -46,6 +48,7 @@ int main(int argc, char *argv[])
         usage();
         return 1;
     }
+
 
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
@@ -61,25 +64,28 @@ int main(int argc, char *argv[])
             // note that this is a horrible mistake to confuse
             // the heading for the yaw
             lst.receiveSensor(in_data);
-	    cerr << "SENSORF: \n{\n\t ax: " \
-	    << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
-	    << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
-	    << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
-	    << "\n\t altitude: " << in_data.altitude \
-	    << "\n}" << endl;
-            out_control.ail = in_data.ax/512 + 0.5;
-            out_control.elev = in_data.ay/512 + 0.5;
-            out_control.rudder = in_data.az/512 + 0.5;
-	    out_control.throttle = in_data.mx/32768 + 0.5;
+            cerr << "SENSORF: \n{\n\t ax: " \
+            << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
+            << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
+            << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
+            << "\n\t altitude: " << in_data.altitude \
+            << "\n}" << endl;
+            out_control.ail = 2*in_data.ax/512;
+            out_control.elev = 2*in_data.ay/512 + 0.5;
+            out_control.rudder = atan2(in_data.my, in_data.mx)/3.14159265359f;
+            out_control.throttle = 1.0f;
+            int delta = time(NULL) - t;
+            //pid_control(in_data, out_control);
             snd.sendControl(out_control);
+            t = time(NULL);
             //cout << in_data << endl;
             //pid_control(in_data, ctrl);
             //snd.sendControl(ctrl);
         }
     }
 }
-
-/*int pid_control(sensorf &data, control &ctrl)
+/*
+void pid_control(sensorf &data, control &ctrl, int delta)
 {
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK);
     static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP, pitchKI, pitchKD);
