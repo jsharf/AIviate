@@ -6,6 +6,7 @@
 
 Servo* servos[ACTUATOR_NUM_AXES];
 float backoff_time;
+int myDebug;
 
 
 void usage()
@@ -22,7 +23,7 @@ int main(int argc, char *argv[])
 {
     time_t prev_time;
     backoff_time = 0;
-    int myDebug = 0;
+    myDebug = 0;
     if (argc < 2 || argc > 5)
     {
         std::cerr << "Wrong number of arguments" << std::endl;
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
             std::cerr << in_command << std::endl;
         if(backoff_time > 0)
         {
-            if(difftime(prev_time, time(NULL)) < backoff_time)
+            if(difftime(time(NULL), prev_time) < backoff_time)
             {
                 average_command.ail += in_command.ail;
                 average_command.elev += in_command.elev;
@@ -109,8 +110,7 @@ int main(int argc, char *argv[])
                 average_command.rudder /= average_denominator;
                 average_command.throttle /= average_denominator;
 
-                if(!executeCommand(average_command))
-                    break;
+                executeCommand(average_command);
 
                 prev_time = time(NULL);
                 average_denominator = 0;
@@ -119,8 +119,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            if(!executeCommand(in_command))
-                break;
+            executeCommand(in_command);
         }
     }
 
@@ -135,7 +134,8 @@ bool executeCommand(control &in_command)
             servos[2]->write((in_command.rudder/2) + 0.5)+
             servos[3]->write(in_command.throttle)) < 0)
     {
-        std::cerr << "Failed to set control surface positions." << std::endl;
+	if(myDebug)
+        	std::cerr << "Failed to set control surface positions." << std::endl;
         return false;
     }
 

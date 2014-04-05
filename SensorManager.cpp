@@ -1,4 +1,5 @@
 #include "SensorManager.h"
+#include "Sensor.h"
 
 void usage()
 {
