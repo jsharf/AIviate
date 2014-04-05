@@ -59,10 +59,10 @@ int main(int argc, char *argv[])
 	    << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
 	    << "\n\t altitude: " << in_data.altitude \
 	    << "\n}" << endl;
-            out_control.ail = in_data.ax/512 + 0.5;
-            out_control.elev = in_data.ay/512 + 0.5;
-            out_control.rudder = in_data.az/512 + 0.5;
-	    out_control.throttle = in_data.mx/32768 + 0.5;
+            out_control.ail = 2*in_data.ax/512;
+            out_control.elev = 2*in_data.ay/512 + 0.5;
+            out_control.rudder = atan2(in_data.my, in_data.mx)/3.14159265359f;
+            out_control.throttle = 1.0f;
             snd.sendControl(out_control);
             //cout << in_data << endl;
             //pid_control(in_data, ctrl);
