@@ -38,11 +38,11 @@ ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
 	./LinuxI2C/linux_i2c.o Sensor.o
 
-ai-control: control.o Comm.o Sensor.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o
+ai-control: ControlManager.o control.o  Comm.o Sensor.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o ControlManager.o
 
 ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
 
 SensorManager.o: SensorManager.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o SensorManager.o SensorManager.cpp
@@ -55,6 +55,9 @@ Comm.o: Comm.cpp
 
 control.o: control.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o control.o control.cpp
+
+ControlManager.o: ControlManager.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o ControlManager.o ControlManager.cpp
 
 actuator.o: actuator.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o actuator.o actuator.cpp

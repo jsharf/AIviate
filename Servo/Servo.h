@@ -43,12 +43,13 @@ public:
     /** Set the servo position, normalised to its full range
      *
      * @param percent A normalised number 0.0-1.0 to represent the position within the  full range.
+     * @return returns 0 on success and <0 on failure
      */
-    void write(float percent);
+    int write(float percent);
 
     /**  Read the servo motor's current position
      *
-     * @param returns a normalised number 0.0-1.0 representing the position within the full range.
+     * @return returns a normalised number 0.0-1.0 representing the position within the full range.
      */
     float read();
 

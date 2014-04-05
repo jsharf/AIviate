@@ -1,6 +1,8 @@
-/* RasPi R/C Servo Library
+/* RasPi I2C R/C Servo Library
  *
  * Copyright (c) 2007-2014 sford, cstyles, fughilli
+ *
+ * Adapted from the Mbed R/C Servo Library by sford and cstyles
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,9 +41,13 @@ Servo::Servo(int pin, unsigned char sc_addr) {
     write(0.5f);
 }
 
-void Servo::write(float percent) {
-    setPos(_pin, (int)(LOWER_PW_LIMIT + PW_RANGE*percent), _addr);
+int Servo::write(float percent) {
+    if(!setPos(_pin, (int)(LOWER_PW_LIMIT + PW_RANGE*percent), _addr))
+    {
+        return -1;
+    }
     _p = clamp(percent, 0.0, 1.0);
+    return 0;
 }
 
 float Servo::read() {
@@ -62,10 +68,15 @@ Servo::operator float() {
     return read();
 }
 
+/* Edit this to fit the packet type of the chosen I2C servo controller
+ * This configuration matches the servo controller firmware available (for MSP430) at:
+ * https://www.github.com/Fughilli/ServoController
+ */
+
 bool Servo::setPos(int s_num, unsigned int pos, unsigned char dev_addr)
 {
     char buf[2];
     buf[0] = ((s_num<<5)&0xE0)|((pos>>8)&0x0F);
     buf[1] = pos&0xFF;
-    return (I2CBus::getInstance().i2c_write(dev_addr, buf, 2)==2);    
+    return (I2CBus::getInstance().i2c_write(dev_addr, buf, 2)==2);
 }
