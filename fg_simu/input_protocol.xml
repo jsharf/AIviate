@@ -1,42 +1,33 @@
 <?xml version="1.0"?>
 <PropertyList>
 <generic>
-
    <input>
       <line_separator>newline</line_separator>
-      <var_separator>tab</var_separator>
- 
+      <var_separator> </var_separator>
       <chunk>
          <name>/controls/flight/aileron</name>
          <node>/controls/flight/aileron</node>
          <type>float</type>
          <format>%f</format>
        </chunk>
-      
       <chunk>
          <name>/controls/flight/elevator</name>
          <node>/controls/flight/elevator</node>
          <type>float</type>
          <format>%f</format>
        </chunk>
-       
       <chunk>
          <name>/controls/flight/rudder</name>
          <node>/controls/flight/rudder</node>
          <type>float</type>
          <format>%f</format>
        </chunk>
-
-     
-      <chunk>
+        <chunk>
          <name>/controls/engines/engine/throttle</name>
          <node>/controls/engines/engine/throttle</node>
          <type>float</type>
          <format>%f</format>
-       </chunk>
- 
-       
+        </chunk>
    </input>   
-   
 </generic>
 </PropertyList>

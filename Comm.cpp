@@ -79,7 +79,7 @@ int UDPListener::receiveControl(control &ctrl) const
     string packet = listen();
     if (packet != "FAIL")
     {
-        sscanf(packet.c_str(), "%f\t%f\t%f\t%f\n", &(ctrl.ail), \
+        sscanf(packet.c_str(), "%f %f %f %f\n", &(ctrl.ail), \
             &(ctrl.elev), &(ctrl.rudder), &(ctrl.throttle));
         return 0;
     }
@@ -156,7 +156,7 @@ int UDPSender::sendSensor(sensor &data) const
 int UDPSender::sendControl(control &ctrl) const
 {
     char send_data[128];
-    sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
+    sprintf(send_data, "%f %f %f %f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
     ctrl.throttle);
     string packet(send_data);
     return send(packet);
