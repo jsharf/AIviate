@@ -12,13 +12,29 @@
          <type>float</type>
          <format>%f</format>
        </chunk>
-       
+      
       <chunk>
          <name>/controls/flight/elevator</name>
          <node>/controls/flight/elevator</node>
          <type>float</type>
          <format>%f</format>
        </chunk>
+       
+      <chunk>
+         <name>/controls/flight/rudder</name>
+         <node>/controls/flight/rudder</node>
+         <type>float</type>
+         <format>%f</format>
+       </chunk>
+
+     
+      <chunk>
+         <name>/controls/engines/engine/throttle</name>
+         <node>/controls/engines/engine/throttle</node>
+         <type>float</type>
+         <format>%f</format>
+       </chunk>
+ 
        
    </input>   
    
