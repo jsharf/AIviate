@@ -146,7 +146,7 @@ void pid_control(sensorf &data, control &ctrl, float delta)
 
     //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
 
-    //pc.printf("Angles: %f %f\r\n", pitch, roll);
+    std::cout << "Angles: " << pitch << "\t" << roll << std::endl;
 
     // X-axis control via ailerons
     float aileron_out = rollPID.calculate(roll, 0, delta);
