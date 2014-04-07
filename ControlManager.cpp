@@ -1,7 +1,7 @@
 #include "control.h"
 using namespace std;
 
-void pid_control(sensorf &data, control &ctrl, int delta);
+void pid_control(sensorf &data, control &ctrl, float delta);
 
 /*
    Control Loop
