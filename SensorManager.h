@@ -2,6 +2,7 @@
 #define SENSOR_MANAGER_H
 
 #include <ostream>
+#include <pthread.h>
 #include "LinuxI2C/linux_i2c.h"
 #include "Sensor.h"
 #include "Comm.h"
@@ -44,14 +45,11 @@ const int GY_0 = -12;
 const int GZ_0 = 3;
 #endif
 
-
-
 struct config
 {
     int frequency;
     int accel_resolution;
 };
-
 
 char sensor_set_i2c_pointer(char addr, char reg);
 

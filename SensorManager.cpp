@@ -6,6 +6,27 @@ void usage()
     cerr << "sensor <out_addr> <out_port>" << endl;
 }
 
+// The current altitude
+// may temporarily be an invalid
+// reading because 
+static struct 
+{
+    char isValid;
+    float altitude;
+} currAltitude;
+
+void checkAltitude(void)
+{
+    int nSteps;
+    while (true)
+    {
+        // check pressure
+        // check temperature
+        // update currAltitude
+        // wait n nanoseconds
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 3)
@@ -21,13 +42,26 @@ int main(int argc, char *argv[])
     }
     UDPSender snd(argv[1], argv[2]);
     sensor out_data;
+
+    currAltitude.isValid = 0;
+    // create a separate thread to measure altitude
+    pthread_t altitudeThread;
+    if (pthread_create(&altitudeThread, NULL, checkAltitude, NULL) != 0)
+    {
+        cerr << "Could not initiate pthread for reading altitude values" << \
+        endl;
+    }
+
     while (true)
     {
         // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
         sensor_read_gyro(&out_data);
         sensor_read_compass(&out_data);
-        // Send sensor data over UDP to target
+        if (currAltitude.isValid)
+            out_data.altitude = currAltitude.altitude;
+        else
+            out_data.altitude = NAN;
         snd.sendSensor(out_data);
     }
 }
@@ -223,8 +257,6 @@ int sensor_read_compass(struct sensor* s)
 
 int sensor_read_barometer(struct sensor* s)
 {
-    //int ret = sensor_read(barometer_w, bar
-    return 0;
 }
 
 int sensor_config_accelerometer(void)
