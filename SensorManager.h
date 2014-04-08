@@ -34,8 +34,8 @@ using namespace std;
 #define ACCEL_MAGNITUDE 256
 #define GYRO_MAGNITUDE (((32768.0/250)*180)/PI)
 
-#define barometer_w 0xEE
-#define barometer_r 0xEF
+#define BMP085_ADDRESS 0x77
+#define OSS 0
 
 #define USE_PREDETERMINED_ZERO_VALS
 
@@ -68,7 +68,14 @@ int sensor_gyro_turnoff();
 int sensor_read_compass(struct sensor *s);
 int sensor_compass_setmode(void);
 
-int sensor_read_barometer(struct sensor *s);
+
+float bmp085GetTemperature(unsigned int ut);
+long bmp085GetPressure(unsigned long up);
+unsigned int bmp085ReadUT();
+float calcAltitude(float pressure);
+int16_t bmp085ReadInt(unsigned char address);
+unsigned long bmp085ReadUP();
+void sensor_read_barometer(void);
 
 int sensor_config_accelerometer(void);
 int sensor_config_gyro();

@@ -12,20 +12,22 @@ void usage()
 static struct 
 {
     char isValid;
+    unsigned long int timestamp;
     float altitude;
 } currAltitude;
 
-void checkAltitude(void)
-{
-    int nSteps;
-    while (true)
-    {
-        // check pressure
-        // check temperature
-        // update currAltitude
-        // wait n nanoseconds
-    }
-}
+// Barometer calibration values
+int ac1;
+int ac2;
+int ac3;
+unsigned int ac4;
+unsigned int ac5;
+unsigned int ac6;
+int b1;
+int b2;
+int mb;
+int mc;
+int md;
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
     currAltitude.isValid = 0;
     // create a separate thread to measure altitude
     pthread_t altitudeThread;
-    if (pthread_create(&altitudeThread, NULL, checkAltitude, NULL) != 0)
+    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
@@ -255,8 +257,159 @@ int sensor_read_compass(struct sensor* s)
     return 1;
 }
 
-int sensor_read_barometer(struct sensor* s)
+float bmp085GetTemperature(unsigned int ut)
 {
+    long x1, x2;
+
+    x1 = (((long)ut - (long)ac6)*(long)ac5) >> 15;
+    x2 = ((long)mc << 11)/(x1 + md);
+    b5 = x1 + x2;
+
+    float temp = ((b5 + 8)>>4);
+    temp = temp /10;
+
+    return temp;
+}
+
+// Read 2 bytes from the BMP085
+// First byte will be from 'address'
+// Second byte will be from 'address'+1
+int16_t bmp085ReadInt(unsigned char address)
+{
+    char buf[2];
+    sensor_read(BMP085_ADDRESS, address, buf, 2);
+    char msb = buf[0];
+    char lsb = buf[1];
+    return (int) msb<<8 | lsb;
+}
+
+// Read 1 byte from the BMP085 at 'address'
+char bmp085Read(unsigned char address)
+{
+    unsigned char data;
+    sensor_read(BMP085_ADDRESS, address, &data, 1);
+    return data;
+}
+
+long bmp085GetPressure(unsigned long up)
+{
+
+    int32_t b3, b6, x1, x2, x3, p;
+    uint32_t b4, b7;
+    // do pressure calcs
+    b6 = b5 - 4000;
+    x1 = ((int32_t)b2 * ( (b6 * b6)>>12 )) >> 11;
+    x2 = ((int32_t)ac2 * b6) >> 11;
+    x3 = x1 + x2;
+    b3 = ((((int32_t)ac1*4 + x3) << oversampling) + 2) / 4;
+
+    x1 = ((int32_t)ac3 * b6) >> 13;
+    x2 = ((int32_t)b1 * ((b6 * b6) >> 12)) >> 16;
+    x3 = ((x1 + x2) + 2) >> 2;
+    b4 = ((uint32_t)ac4 * (uint32_t)(x3 + 32768)) >> 15;
+    b7 = ((uint32_t)up - b3) * (uint32_t)( 50000UL >> oversampling );
+
+    if (b7 < 0x80000000) {
+    p = (b7 * 2) / b4;
+    } else {
+    p = (b7 / b4) * 2;
+    }
+    x1 = (p >> 8) * (p >> 8);
+    x1 = (x1 * 3038) >> 16;
+    x2 = (-7357 * p) >> 16;
+
+    p = p + ((x1 + x2 + (int32_t)3791)>>4);
+    return p;
+}
+
+unsigned int bmp085ReadUT(){
+    unsigned int ut;
+
+    char data = 0x2E;
+    // Write 0x2E into Register 0xF4
+    // This requests a temperature reading
+    if (sensor_write(BMP085_ADDRESS, 0xF4, &data, 1) < 0)
+    {
+        if (DEBUG)
+            std::cerr << "Error requesting UT from BMP085" << std::endl;
+        return 0;
+    }
+
+    // wait 5 milliseconds
+    struct timespec delay = { 0,0};
+    timeout.tv_sec = 0;
+    timeout.tv_nsec = (5) * (1000000); // 5 milliseconds = 5 nanoseconds *
+                                       // 10^6 nanoseconds/millisecond.
+    nanosleep(delay, NULL);
+    
+    // Read two bytes from registers 0xF6 and 0xF7
+    ut = bmp085ReadInt(0xF6);
+    return ut;
+}
+
+// Read the uncompensated pressure value
+unsigned long bmp085ReadUP()
+{
+    unsigned char msb, lsb, xlsb;
+    unsigned long up = 0;
+
+    // Write 0x34+(OSS<<6) into register 0xF4
+    // Request a pressure reading w/ oversampling setting
+    char data = 0x34 + (OSS << 6);;
+    // Write 0x2E into Register 0xF4
+    // This requests a temperature reading
+    if (sensor_write(BMP085_ADDRESS, 0xF4, &data, 1) < 0)
+    {
+        if (DEBUG)
+            std::cerr << "Error requesting UT from BMP085" << std::endl;
+        return 0;
+    }
+
+    
+    // wait 5 milliseconds
+    struct timespec delay = { 0,0};
+    timeout.tv_sec = 0;
+    // 5 milliseconds = 5 nanoseconds * 10^6 nanoseconds/millisecond.
+    timeout.tv_nsec = (2 + (3<<OSS)) * (1000000); 
+    nanosleep(delay, NULL);
+
+    // Read register 0xF6 (MSB), 0xF7 (LSB), and 0xF8 (XLSB)
+    msb = bmp085Read(0xF6);
+    lsb = bmp085Read(0xF7);
+    xlsb = bmp085Read(0xF8);
+
+    up = (((unsigned long) msb << 16) | ((unsigned long) lsb << 8) | (unsigned long) xlsb) >> (8-OSS);
+
+    return up;
+}
+
+float calcAltitude(float pressure)
+{
+    float A = pressure/101325;
+    float B = 1/5.25588;
+    float C = pow(A,B);
+    C = 1 - C;
+    C = C /0.0000225577;
+
+    return C;
+}
+
+void sensor_read_barometer(void)
+{
+    int nSteps;
+    while (true)
+    {
+        // check temperature
+        float temperature = bmp085GetTemperature(bmp085ReadUT()); //MUST be called first
+        // check pressure
+        float pressure = bmp085GetPressure(bmp085ReadUP());
+        //float atm = pressure / 101325; // "standard atmosphere"
+        float altitude = calcAltitude(pressure); //Uncompensated caculation - in Meters 
+        // update currAltitude
+        currAltitude.altitude = altitude;
+        currAltitude.timestamp = time(NULL);
+        currAltitude.isValid = 1;
+    }
 }
 
 int sensor_config_accelerometer(void)
@@ -333,6 +486,17 @@ int sensor_config_compass(void)
 
 int sensor_config_barometer(void)
 {
+    ac1 = bmp085ReadInt(0xAA);
+    ac2 = bmp085ReadInt(0xAC);
+    ac3 = bmp085ReadInt(0xAE);
+    ac4 = bmp085ReadInt(0xB0);
+    ac5 = bmp085ReadInt(0xB2);
+    ac6 = bmp085ReadInt(0xB4);
+    b1 = bmp085ReadInt(0xB6);
+    b2 = bmp085ReadInt(0xB8);
+    mb = bmp085ReadInt(0xBA);
+    mc = bmp085ReadInt(0xBC);
+    md = bmp085ReadInt(0xBE);
     return 1<<0;
 }
 
