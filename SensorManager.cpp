@@ -61,7 +61,9 @@ int main(int argc, char *argv[])
         sensor_read_gyro(&out_data);
         sensor_read_compass(&out_data);
         if (currAltitude.isValid)
+        {
             out_data.altitude = currAltitude.altitude;
+        }
         else
             out_data.altitude = NAN;
         snd.sendSensor(out_data);
