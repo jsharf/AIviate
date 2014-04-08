@@ -1,4 +1,5 @@
-#include "control.h"
+#include "control.h"\
+#include "Vector/Vector.h"
 using namespace std;
 
 void pid_control(sensorf &data, control &ctrl, float delta);
@@ -75,6 +76,8 @@ int main(int argc, char *argv[])
     }
 }
 
+
+// Values should be handed over in m/s/s, rad/s
 void pid_control(sensorf &data, control &ctrl, float delta)
 {
     // Filter Constants
@@ -102,45 +105,25 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP,
     pitchKI, pitchKD), yawPID(yawKP, yawKI, yawKD);
 
-    float ax = data.ax;
-    float ay = data.ay;
-    float az = data.az;
+    Vector3d accelVec(data.ax, data.ay, data.az), magVec(data.mx, data.my, data.mz);
 
-    float gx = data.gx;
-    float gy = data.gy;
-    float gz = data.gz;
+    accelVecMag = accelVec.magnitude();
+    accelVec = accelVec.unit();
 
-    float amagnitude = sqrt(ax*ax + ay*ay + az*az);
-    float gmagnitude = sqrt(gx*gx + gy*gy + gz*gz);
+    magVecMag = magVec.magnitude();
+    magVec = magVec.unit();
 
-    ax /= amagnitude;
-    ay /= amagnitude;
-    az /= amagnitude;
+    // Project the acceleration vector into the xz and yz planes
+    Vector2d xzAccelVec(accelVec.x, accelVec.z);
+    Vector2d yzAccelVec(accelVec.y, accelVec.z);
 
-    gx /= gmagnitude;
-    gy /= gmagnitude;
-    gz /= gmagnitude;
+    // Compute roll and pitch by comparing with the vertical (j vector)
+    accelRoll = yzAccelVec.angleTo(Vector2d::j);
+    accelPitch = xzAccelVec.angleTo(Vector2d::j);
 
-    //float pitch = 1000*atan2(az, ax);
-    //float roll = 1000*atan2(az, ay);
-
-    float accelAngY = atan2(az, ax);
-    float accelAngX = atan2(az, ay);
-    float accelAngZ = atan2(ay, ax);
-
-    accelAngX -= PI/2;
-    if(accelAngX < -PI)
-    {
-        accelAngX += 2*PI;
-    }
-    accelAngY -= PI/2;
-    if(accelAngY < -PI)
-    {
-        accelAngY += 2*PI;
-    }
-
-    float pitch = pitchFilter.calculate(accelAngY, gy, delta);
-    float roll = -rollFilter.calculate(accelAngX, -gx, delta);
+    // Calculate roll pitch and yaw with filters
+    float pitch = pitchFilter.calculate(accelPitch, gy, delta);
+    float roll = -rollFilter.calculate(accelRoll, -gx, delta);
     float yaw = yawFilter.calculate(accelAngZ, gz, delta);
 
 
