@@ -43,8 +43,10 @@ int main(int argc, char *argv[])
     time_t prev_time = time(NULL), cur_time;
     float delta;
 
-    // TODO: add a check for initial recepion of data to prevent first delta from being very large (i.e., if ai-sensor is started after ai-control).
-
+    // TODO: add a check for initial recepion of data to prevent first delta
+    // from being very large (i.e., if ai-sensor is started after ai-control).
+    // COMMENT: not really necessary if it's just once. Also not 100% sure I
+    // like this behavior
     while (true)
     {
         string a = lst.listen();
@@ -62,6 +64,8 @@ int main(int argc, char *argv[])
             << "\n}" << endl;
 
             // Recalculate delta
+            // TODO: put timestamp on sensor packets
+            //       so we can get true delta
             cur_time = time(NULL);
             delta = difftime(cur_time, prev_time);
             prev_time = cur_time;
@@ -70,7 +74,6 @@ int main(int argc, char *argv[])
             pid_control(in_data, out_control, delta);
 
             // Send the control structure
-            out_control.throttle = 1.0f;
             snd.sendControl(out_control);
         }
     }
@@ -138,5 +141,10 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     // Y-axis control via elevators
     float elevator_out = pitchPID.calculate(pitch, 0, delta);
     ctrl.elev = elevator_out; //+ ElevatorCenter;
+
+    ctrl.rudder = 0; // default value (to be changed)
+
+    // default value, change this later when we get throttling figured out
+    ctrl.throttle = 1.0f;
 }
 

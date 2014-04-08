@@ -36,7 +36,7 @@ servo_test.o: ./Test/ServoTest.cpp
 
 ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o Comm.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
-	./LinuxI2C/linux_i2c.o Sensor.o Comm.o
+	./LinuxI2C/linux_i2c.o Sensor.o Comm.o -pthread
 
 ai-control: ControlManager.o control.o  Comm.o Sensor.o Filters/Filters.o\
 PIDControl/PIDControl.o
@@ -47,7 +47,7 @@ ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
 
 SensorManager.o: SensorManager.cpp
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o SensorManager.o SensorManager.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -pthread -o SensorManager.o SensorManager.cpp
 
 Sensor.o: Sensor.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o Sensor.o Sensor.cpp
