@@ -75,7 +75,7 @@ unsigned int bmp085ReadUT();
 float calcAltitude(float pressure);
 int16_t bmp085ReadInt(unsigned char address);
 unsigned long bmp085ReadUP();
-void sensor_read_barometer(void);
+void* sensor_read_barometer(void *ignore);
 
 int sensor_config_accelerometer(void);
 int sensor_config_gyro();

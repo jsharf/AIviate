@@ -28,6 +28,7 @@ int b2;
 int mb;
 int mc;
 int md;
+long b5;
 
 int main(int argc, char *argv[])
 {
@@ -288,7 +289,7 @@ int16_t bmp085ReadInt(unsigned char address)
 // Read 1 byte from the BMP085 at 'address'
 char bmp085Read(unsigned char address)
 {
-    unsigned char data;
+    char data;
     sensor_read(BMP085_ADDRESS, address, &data, 1);
     return data;
 }
@@ -303,13 +304,13 @@ long bmp085GetPressure(unsigned long up)
     x1 = ((int32_t)b2 * ( (b6 * b6)>>12 )) >> 11;
     x2 = ((int32_t)ac2 * b6) >> 11;
     x3 = x1 + x2;
-    b3 = ((((int32_t)ac1*4 + x3) << oversampling) + 2) / 4;
+    b3 = ((((int32_t)ac1*4 + x3) << OSS) + 2) / 4;
 
     x1 = ((int32_t)ac3 * b6) >> 13;
     x2 = ((int32_t)b1 * ((b6 * b6) >> 12)) >> 16;
     x3 = ((x1 + x2) + 2) >> 2;
     b4 = ((uint32_t)ac4 * (uint32_t)(x3 + 32768)) >> 15;
-    b7 = ((uint32_t)up - b3) * (uint32_t)( 50000UL >> oversampling );
+    b7 = ((uint32_t)up - b3) * (uint32_t)( 50000UL >> OSS );
 
     if (b7 < 0x80000000) {
     p = (b7 * 2) / b4;
@@ -339,10 +340,10 @@ unsigned int bmp085ReadUT(){
 
     // wait 5 milliseconds
     struct timespec delay = { 0,0};
-    timeout.tv_sec = 0;
-    timeout.tv_nsec = (5) * (1000000); // 5 milliseconds = 5 nanoseconds *
+    delay.tv_sec = 0;
+    delay.tv_nsec = (5) * (1000000); // 5 milliseconds = 5 nanoseconds *
                                        // 10^6 nanoseconds/millisecond.
-    nanosleep(delay, NULL);
+    nanosleep(&delay, NULL);
     
     // Read two bytes from registers 0xF6 and 0xF7
     ut = bmp085ReadInt(0xF6);
@@ -370,10 +371,10 @@ unsigned long bmp085ReadUP()
     
     // wait 5 milliseconds
     struct timespec delay = { 0,0};
-    timeout.tv_sec = 0;
+    delay.tv_sec = 0;
     // 5 milliseconds = 5 nanoseconds * 10^6 nanoseconds/millisecond.
-    timeout.tv_nsec = (2 + (3<<OSS)) * (1000000); 
-    nanosleep(delay, NULL);
+    delay.tv_nsec = (2 + (3<<OSS)) * (1000000); 
+    nanosleep(&delay, NULL);
 
     // Read register 0xF6 (MSB), 0xF7 (LSB), and 0xF8 (XLSB)
     msb = bmp085Read(0xF6);
@@ -396,7 +397,7 @@ float calcAltitude(float pressure)
     return C;
 }
 
-void sensor_read_barometer(void)
+void* sensor_read_barometer(void *ignore)
 {
     int nSteps;
     while (true)
