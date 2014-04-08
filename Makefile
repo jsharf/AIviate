@@ -47,7 +47,7 @@ ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
 
 SensorManager.o: SensorManager.cpp
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o SensorManager.o SensorManager.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -pthread -o SensorManager.o SensorManager.cpp
 
 Sensor.o: Sensor.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o Sensor.o Sensor.cpp
