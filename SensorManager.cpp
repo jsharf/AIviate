@@ -370,7 +370,6 @@ unsigned int bmp085ReadUP()
         return 0;
     }
 
-
     // wait 5 milliseconds
     struct timespec delay = { 0,0};
     delay.tv_sec = 0;
