@@ -61,7 +61,7 @@ int UDPListener::receiveSensor(sensorf &in_data) const
     string packet = listen();
     if (packet != "FAIL")
     {
-        sscanf(packet.c_str(), "%f %f %f %f %f %f %f %f %f %f\n", \
+        sscanf(packet.c_str(), "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", \
         &(in_data.mx), &(in_data.my), &(in_data.mz), \
         &(in_data.gx), &(in_data.gy), &(in_data.gz), \
         &(in_data.ax), &(in_data.ay), &(in_data.az), \
@@ -79,7 +79,7 @@ int UDPListener::receiveControl(control &ctrl) const
     string packet = listen();
     if (packet != "FAIL")
     {
-        sscanf(packet.c_str(), "%f %f %f %f\n", &(ctrl.ail), \
+        sscanf(packet.c_str(), "%f\t%f\t%f\t%f\n", &(ctrl.ail), \
             &(ctrl.elev), &(ctrl.rudder), &(ctrl.throttle));
         return 0;
     }
@@ -145,7 +145,7 @@ int UDPSender::sendSensor(sensor &data) const
     float ay = (float) data.ay;
     float az = (float) data.az;
     float altitude = (float) data.altitude;
-    snprintf(str, 128, "%f %f %f %f %f %f %f %f %f %f\n",\
+    snprintf(str, 128, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",\
     roll, pitch, heading, \
     r_rate, p_rate, y_rate, \
     ax, ay, az, \
@@ -156,7 +156,7 @@ int UDPSender::sendSensor(sensor &data) const
 int UDPSender::sendControl(control &ctrl) const
 {
     char send_data[128];
-    sprintf(send_data, "%f %f %f %f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
+    sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
     ctrl.throttle);
     string packet(send_data);
     return send(packet);

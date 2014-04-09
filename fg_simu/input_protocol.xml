@@ -3,7 +3,7 @@
 <generic>
    <input>
       <line_separator>newline</line_separator>
-      <var_separator> </var_separator>
+      <var_separator>tab</var_separator>
       <chunk>
          <name>/controls/flight/aileron</name>
          <node>/controls/flight/aileron</node>

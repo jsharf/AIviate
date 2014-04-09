@@ -3,7 +3,7 @@
 <generic>
    <output>
       <line_separator>newline</line_separator>
-      <var_separator> </var_separator>
+      <var_separator>tab</var_separator>
       <chunk>
          <name>/orientation/roll-deg</name>
          <node>/orientation/roll-deg</node>
