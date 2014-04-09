@@ -296,32 +296,33 @@ char bmp085Read(unsigned char address)
 
 long bmp085GetPressure(unsigned long up)
 {
+    long x1, x2, x3, b3, b6, p;
+    unsigned long b4, b7;
 
-    int32_t b3, b6, x1, x2, x3, p;
-    uint32_t b4, b7;
-    // do pressure calcs
     b6 = b5 - 4000;
-    x1 = ((int32_t)b2 * ( (b6 * b6)>>12 )) >> 11;
-    x2 = ((int32_t)ac2 * b6) >> 11;
+    // Calculate B3
+    x1 = (b2 * (b6 * b6)>>12)>>11;
+    x2 = (ac2 * b6)>>11;
     x3 = x1 + x2;
-    b3 = ((((int32_t)ac1*4 + x3) << OSS) + 2) / 4;
+    b3 = (((((long)ac1)*4 + x3)<<OSS) + 2)>>2;
 
-    x1 = ((int32_t)ac3 * b6) >> 13;
-    x2 = ((int32_t)b1 * ((b6 * b6) >> 12)) >> 16;
-    x3 = ((x1 + x2) + 2) >> 2;
-    b4 = ((uint32_t)ac4 * (uint32_t)(x3 + 32768)) >> 15;
-    b7 = ((uint32_t)up - b3) * (uint32_t)( 50000UL >> OSS );
+    // Calculate B4
+    x1 = (ac3 * b6)>>13;
+    x2 = (b1 * ((b6 * b6)>>12))>>16;
+    x3 = ((x1 + x2) + 2)>>2;
+    b4 = (ac4 * (unsigned long)(x3 + 32768))>>15;
 
-    if (b7 < 0x80000000) {
-    p = (b7 * 2) / b4;
-    } else {
-    p = (b7 / b4) * 2;
-    }
-    x1 = (p >> 8) * (p >> 8);
-    x1 = (x1 * 3038) >> 16;
-    x2 = (-7357 * p) >> 16;
+    b7 = ((unsigned long)(up - b3) * (50000>>OSS));
+    if (b7 < 0x80000000)
+    p = (b7<<1)/b4;
+    else
+    p = (b7/b4)<<1;
 
-    p = p + ((x1 + x2 + (int32_t)3791)>>4);
+    x1 = (p>>8) * (p>>8);
+    x1 = (x1 * 3038)>>16;
+    x2 = (-7357 * p)>>16;
+    p += (x1 + x2 + 3791)>>4;
+
     return p;
 }
 
