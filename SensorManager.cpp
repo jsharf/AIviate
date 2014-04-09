@@ -281,9 +281,9 @@ int16_t bmp085ReadInt(unsigned char address)
 {
     char buf[2];
     sensor_read(BMP085_ADDRESS, address, buf, 2);
-    char msb = buf[0];
-    char lsb = buf[1];
-    return (int) msb<<8 | lsb;
+    unsigned char msb = (unsigned) buf[0];
+    unsigned char lsb = (unsigned) buf[1];
+    return (int16_t) msb<<8 | lsb;
 }
 
 // Read 1 byte from the BMP085 at 'address'
