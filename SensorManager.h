@@ -71,10 +71,10 @@ int sensor_compass_setmode(void);
 
 float bmp085GetTemperature(unsigned int ut);
 long bmp085GetPressure(unsigned long up);
-unsigned int bmp085ReadUT();
+uint16_t bmp085ReadUT();
 float calcAltitude(float pressure);
 int16_t bmp085ReadInt(unsigned char address);
-unsigned long bmp085ReadUP();
+unsigned int bmp085ReadUP();
 void* sensor_read_barometer(void *ignore);
 
 int sensor_config_accelerometer(void);

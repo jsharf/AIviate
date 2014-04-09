@@ -34,6 +34,7 @@ private:
     void operator=(I2CBus const&);
 
     int fd;
+    bool lock;
 };
 
 #endif // LINUX_I2C_H

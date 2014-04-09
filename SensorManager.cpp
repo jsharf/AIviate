@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
 
     currAltitude.isValid = 0;
     // create a separate thread to measure altitude
-    pthread_t altitudeThread;
-    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    //pthread_t altitudeThread;
+    /*if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
-    }
+    }*/
 
     while (true)
     {
@@ -261,7 +261,7 @@ int sensor_read_compass(struct sensor* s)
     return 1;
 }
 
-float bmp085GetTemperature(unsigned int16_t ut)
+float bmp085GetTemperature(uint16_t ut)
 {
     long x1, x2;
 
@@ -284,7 +284,7 @@ int16_t bmp085ReadInt(unsigned char address)
     sensor_read(BMP085_ADDRESS, address, buf, 2);
     unsigned char msb = (unsigned) buf[0];
     unsigned char lsb = (unsigned) buf[1];
-    return (unsigned int16_t) msb<<8 | lsb;
+    return (uint16_t) msb<<8 | lsb;
 }
 
 // Read 1 byte from the BMP085 at 'address'
@@ -327,8 +327,8 @@ int bmp085GetPressure(unsigned int up)
     return p;
 }
 
-unsigned int16_t bmp085ReadUT(){
-    unsigned int16_t ut;
+uint16_t bmp085ReadUT(){
+    uint16_t ut;
 
     char data = 0x2E;
     // Write 0x2E into Register 0xF4
@@ -400,7 +400,6 @@ float calcAltitude(float pressure)
 
 void* sensor_read_barometer(void *ignore)
 {
-    #pragma SUPPRESS
     //int nSteps;
     while (true)
     {
