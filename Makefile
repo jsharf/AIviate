@@ -3,7 +3,7 @@ DEBUG=-Wall -pedantic -Wextra
 
 FLAGS=-std=c++0x
 
-INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters
+INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters,./Vector
 
 all: ai-sensor ai-control ai-actuator
 
@@ -39,9 +39,9 @@ ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o Comm.o
 	./LinuxI2C/linux_i2c.o Sensor.o Comm.o -pthread
 
 ai-control: ControlManager.o control.o  Comm.o Sensor.o Filters/Filters.o\
-PIDControl/PIDControl.o
+PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o \
-    ControlManager.o Filters/Filters.o PIDControl/PIDControl.o
+    ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
 
 ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
@@ -76,3 +76,12 @@ Filters/Filters.o: Filters/Filters.cpp
 PIDControl/PIDControl.o: PIDControl/PIDControl.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./PIDControl/PIDControl.o \
 ./PIDControl/PIDControl.cpp
+
+Vector/Vector3d.o: Vector/Vector3d.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Vector/Vector3d.o ./Vector/Vector3d.cpp
+
+Vector/Quaternion.o: Vector/Quaternion.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Vector/Quaternion.o ./Vector/Quaternion.cpp
+
+Vector/Vector2d.o: Vector/Vector2d.cpp
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Vector/Vector2d.o ./Vector/Vector2d.cpp

@@ -1,5 +1,6 @@
-#include "control.h"\
+#include "control.h"
 #include "Vector/Vector.h"
+
 using namespace std;
 
 void pid_control(sensorf &data, control &ctrl, float delta);
@@ -110,10 +111,10 @@ void pid_control(sensorf &data, control &ctrl, float delta)
 
     Vector3d accelVec(data.ax, data.ay, data.az), magVec(data.mx, data.my, data.mz);
 
-    accelVecMag = accelVec.magnitude();
+    double accelVecMag = accelVec.magnitude();
     accelVec = accelVec.unit();
 
-    magVecMag = magVec.magnitude();
+    double magVecMag = magVec.magnitude();
     magVec = magVec.unit();
 
     // Project the acceleration vector into the xz and yz planes
@@ -121,18 +122,19 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     Vector2d yzAccelVec(accelVec.y, accelVec.z);
 
     // Compute roll and pitch by comparing with the vertical (j vector)
-    accelRoll = yzAccelVec.angleTo(Vector2d::j);
-    accelPitch = xzAccelVec.angleTo(Vector2d::j);
+    double accelRoll = yzAccelVec.angleTo(Vector2d::j);
+    double accelPitch = xzAccelVec.angleTo(Vector2d::j);
+    double accelAngZ = 0;
 
     // Calculate roll pitch and yaw with filters
-    float pitch = pitchFilter.calculate(accelPitch, gy, delta);
-    float roll = -rollFilter.calculate(accelRoll, -gx, delta);
-    float yaw = yawFilter.calculate(accelAngZ, gz, delta);
+    float pitch = pitchFilter.calculate(accelPitch, data.gy, delta);
+    float roll = -rollFilter.calculate(accelRoll, -data.gx, delta);
+    float yaw = yawFilter.calculate(accelAngZ, data.gz, delta);
 
 
     //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
 
-    std::cout << "Angles: " << pitch << "\t" << roll << std::endl;
+    std::cout << "Angles: " << accelPitch << "\t" << data.gy << "\t" << accelRoll << "\t" << -data.gx << "\t" << pitch << "\t" << roll << std::endl;
 
     // X-axis control via ailerons
     float aileron_out = rollPID.calculate(roll, 0, delta);
