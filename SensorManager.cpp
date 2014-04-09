@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
 
     currAltitude.isValid = 0;
     // create a separate thread to measure altitude
-    pthread_t altitudeThread;
-    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    //pthread_t altitudeThread;
+    /*if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
-    }
+    }*/
 
     while (true)
     {
@@ -327,8 +327,8 @@ int bmp085GetPressure(unsigned int up)
     return p;
 }
 
-unsigned int16_t bmp085ReadUT(){
-    unsigned int16_t ut;
+uint16_t bmp085ReadUT(){
+    uint16_t ut;
 
     char data = 0x2E;
     // Write 0x2E into Register 0xF4
