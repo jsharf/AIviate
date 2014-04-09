@@ -261,7 +261,7 @@ int sensor_read_compass(struct sensor* s)
     return 1;
 }
 
-float bmp085GetTemperature(unsigned int ut)
+float bmp085GetTemperature(unsigned int16_t ut)
 {
     long x1, x2;
 
@@ -284,7 +284,7 @@ int16_t bmp085ReadInt(unsigned char address)
     sensor_read(BMP085_ADDRESS, address, buf, 2);
     unsigned char msb = (unsigned) buf[0];
     unsigned char lsb = (unsigned) buf[1];
-    return (int16_t) msb<<8 | lsb;
+    return (unsigned int16_t) msb<<8 | lsb;
 }
 
 // Read 1 byte from the BMP085 at 'address'
@@ -295,29 +295,29 @@ char bmp085Read(unsigned char address)
     return data;
 }
 
-long bmp085GetPressure(unsigned long up)
+int bmp085GetPressure(unsigned int up)
 {
-    long x1, x2, x3, b3, b6, p;
-    unsigned long b4, b7;
+    int x1, x2, x3, b3, b6, p;
+    unsigned int b4, b7;
 
     b6 = b5 - 4000;
     // Calculate B3
     x1 = (b2 * (b6 * b6)>>12)>>11;
     x2 = (ac2 * b6)>>11;
     x3 = x1 + x2;
-    b3 = (((((long)ac1)*4 + x3)<<OSS) + 2)>>2;
+    b3 = (((((int)ac1)*4 + x3)<<OSS) + 2)>>2;
 
     // Calculate B4
     x1 = (ac3 * b6)>>13;
     x2 = (b1 * ((b6 * b6)>>12))>>16;
     x3 = ((x1 + x2) + 2)>>2;
-    b4 = (ac4 * (unsigned long)(x3 + 32768))>>15;
+    b4 = (ac4 * (unsigned int)(x3 + 32768))>>15;
 
-    b7 = ((unsigned long)(up - b3) * (50000>>OSS));
+    b7 = ((unsigned int)(up - b3) * (50000>>OSS));
     if (b7 < 0x80000000)
-    p = (b7<<1)/b4;
+        p = (b7<<1)/b4;
     else
-    p = (b7/b4)<<1;
+        p = (b7/b4)<<1;
 
     x1 = (p>>8) * (p>>8);
     x1 = (x1 * 3038)>>16;
@@ -327,8 +327,8 @@ long bmp085GetPressure(unsigned long up)
     return p;
 }
 
-unsigned int bmp085ReadUT(){
-    unsigned int ut;
+unsigned int16_t bmp085ReadUT(){
+    unsigned int16_t ut;
 
     char data = 0x2E;
     // Write 0x2E into Register 0xF4
@@ -353,10 +353,10 @@ unsigned int bmp085ReadUT(){
 }
 
 // Read the uncompensated pressure value
-unsigned long bmp085ReadUP()
+unsigned int bmp085ReadUP()
 {
     unsigned char msb, lsb, xlsb;
-    unsigned long up = 0;
+    unsigned int up = 0;
 
     // Write 0x34+(OSS<<6) into register 0xF4
     // Request a pressure reading w/ oversampling setting
@@ -383,7 +383,7 @@ unsigned long bmp085ReadUP()
     lsb = bmp085Read(0xF7);
     xlsb = bmp085Read(0xF8);
 
-    up = (((unsigned long) msb << 16) | ((unsigned long) lsb << 8) | (unsigned long) xlsb) >> (8-OSS);
+    up = (((unsigned int) msb << 16) | ((unsigned int) lsb << 8) | (unsigned int) xlsb) >> (8-OSS);
 
     return up;
 }
