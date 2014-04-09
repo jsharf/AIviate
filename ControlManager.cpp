@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     control out_control;
     sensorf in_data;
 
-    time_t prev_time = time(NULL), cur_time;
+    clock_t prev_time = clock(), cur_time;
     float delta;
 
     // TODO: add a check for initial recepion of data to prevent first delta
@@ -67,8 +67,9 @@ int main(int argc, char *argv[])
             // Recalculate delta
             // TODO: put timestamp on sensor packets
             //       so we can get true delta
-            cur_time = time(NULL);
-            delta = difftime(cur_time, prev_time);
+            cur_time = clock();
+            delta = cur_time-prev_time;
+            delta /= CLOCKS_PER_SEC;
             prev_time = cur_time;
 
             // Run the PID loop
@@ -111,10 +112,10 @@ void pid_control(sensorf &data, control &ctrl, float delta)
 
     Vector3d accelVec(data.ax, data.ay, data.az), magVec(data.mx, data.my, data.mz);
 
-    double accelVecMag = accelVec.magnitude();
+    //double accelVecMag = accelVec.magnitude();
     accelVec = accelVec.unit();
 
-    double magVecMag = magVec.magnitude();
+    //double magVecMag = magVec.magnitude();
     magVec = magVec.unit();
 
     // Project the acceleration vector into the xz and yz planes
@@ -129,7 +130,7 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     // Calculate roll pitch and yaw with filters
     float pitch = pitchFilter.calculate(accelPitch, data.gy, delta);
     float roll = -rollFilter.calculate(accelRoll, -data.gx, delta);
-    float yaw = yawFilter.calculate(accelAngZ, data.gz, delta);
+    //float yaw = yawFilter.calculate(accelAngZ, data.gz, delta);
 
 
     //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);

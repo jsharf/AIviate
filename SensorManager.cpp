@@ -8,8 +8,8 @@ void usage()
 
 // The current altitude
 // may temporarily be an invalid
-// reading because 
-static struct 
+// reading because
+static struct
 {
     char isValid;
     unsigned long int timestamp;
@@ -91,7 +91,7 @@ int sensor_read(char addr, char reg, char *buf, int n)
 
 int sensor_write(char addr, char reg, char *buf, int n)
 {
-    char buf2[n+1];
+    char* buf2 = (char*)malloc((n+1)*sizeof(char));
     memcpy(buf2+1, buf, n);
     buf2[0] = reg;
     int i = I2CBus::getInstance().i2c_write(addr, buf2, n+1);
@@ -101,6 +101,7 @@ int sensor_write(char addr, char reg, char *buf, int n)
             std::cerr << "Only sent " << i << "/" << n << " bytes (write)" << std::endl;
         return i;
     }
+    free(buf2);
     return n;
 }
 
@@ -345,7 +346,7 @@ unsigned int bmp085ReadUT(){
     delay.tv_nsec = (5) * (1000000); // 5 milliseconds = 5 nanoseconds *
                                        // 10^6 nanoseconds/millisecond.
     nanosleep(&delay, NULL);
-    
+
     // Read two bytes from registers 0xF6 and 0xF7
     ut = bmp085ReadInt(0xF6);
     return ut;
@@ -369,12 +370,12 @@ unsigned long bmp085ReadUP()
         return 0;
     }
 
-    
+
     // wait 5 milliseconds
     struct timespec delay = { 0,0};
     delay.tv_sec = 0;
     // 5 milliseconds = 5 nanoseconds * 10^6 nanoseconds/millisecond.
-    delay.tv_nsec = (2 + (3<<OSS)) * (1000000); 
+    delay.tv_nsec = (2 + (3<<OSS)) * (1000000);
     nanosleep(&delay, NULL);
 
     // Read register 0xF6 (MSB), 0xF7 (LSB), and 0xF8 (XLSB)
@@ -400,20 +401,23 @@ float calcAltitude(float pressure)
 
 void* sensor_read_barometer(void *ignore)
 {
-    int nSteps;
+    #pragma SUPPRESS
+    //int nSteps;
     while (true)
     {
         // check temperature
-        float temperature = bmp085GetTemperature(bmp085ReadUT()); //MUST be called first
+        //float temperature = bmp085GetTemperature(bmp085ReadUT()); //MUST be called first
         // check pressure
         float pressure = bmp085GetPressure(bmp085ReadUP());
         //float atm = pressure / 101325; // "standard atmosphere"
-        float altitude = calcAltitude(pressure); //Uncompensated caculation - in Meters 
+        float altitude = calcAltitude(pressure); //Uncompensated caculation - in Meters
         // update currAltitude
         currAltitude.altitude = altitude;
         currAltitude.timestamp = time(NULL);
         currAltitude.isValid = 1;
     }
+
+    return NULL;
 }
 
 int sensor_config_accelerometer(void)
