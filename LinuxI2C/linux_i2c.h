@@ -34,7 +34,7 @@ private:
     void operator=(I2CBus const&);
 
     int fd;
-    bool lock;
+    pthread_mutex_t mymutex;    
 };
 
 #endif // LINUX_I2C_H
