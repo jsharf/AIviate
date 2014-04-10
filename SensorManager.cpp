@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
 
     currAltitude.isValid = 0;
     // create a separate thread to measure altitude
-    //pthread_t altitudeThread;
-    /*if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    pthread_t altitudeThread;
+    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
-    }*/
+    }
 
     while (true)
     {
