@@ -4,6 +4,8 @@
 #include <iostream>
 #include <ostream>
 #include "Vector/Quaternion.h"
+#include <ctime>
+#include <cmath>
 
 struct sensor
 {
@@ -30,6 +32,6 @@ struct PlaneState
 };
 
 void sensor_to_float(const sensor &a, sensor &f);
-void sensor_to_planestate(const sensorf &data, PlaneState p);
+void sensorf_to_planestate(const sensorf &data, PlaneState p);
 
 #endif //SENSOR_H

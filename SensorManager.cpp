@@ -1,5 +1,4 @@
 #include "SensorManager.h"
-#include "Sensor.h"
 
 void usage()
 {
@@ -29,6 +28,14 @@ int mb;
 int mc;
 int md;
 long b5;
+    
+uint64_t get_time_in_us()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    uint64_t time_in_micros = (1000000 * tv_sec + tv_usec);
+    return time_in_micros;
+}
 
 int main(int argc, char *argv[])
 {
@@ -60,8 +67,10 @@ int main(int argc, char *argv[])
         endl;
     }
 
+    uint64_t last_time = get_time_in_us();
     while (true)
     {
+        float dt = (float)(get_time_in_us() - last_time);
         // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
         sensor_read_gyro(&out_data);
@@ -73,7 +82,9 @@ int main(int argc, char *argv[])
         else
             out_data.altitude = NAN;
         sensor_to_float(data, float_data);
-        sensor_fusion(float_data, state);
+        sensorf_to_planestate(float_data, state, dt);
+        snd.sendPlaneState(state);
+        last_time = time(NULL);
     }
 }
 

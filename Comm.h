@@ -14,6 +14,7 @@
 #include <cstring>
 #include "Sensor.h"
 #include "control.h"
+#include "Vector/Quaternion.cpp"
 using namespace std;
 extern const int PACKETSIZE;
 
@@ -26,6 +27,7 @@ class UDPListener
         string listen() const;
         int receiveSensor(sensorf &in_data) const;
         int receiveControl(control &ctrl) const;
+        int receivePlaneState(PlaneState &p) const;
     private:
         struct sockaddr_in remaddr;
         int in_sockfd;
@@ -36,9 +38,10 @@ class UDPSender
 {
     public:
         UDPSender(string url, string port, int debug=false);
-        int send(string msg) const;
-        int sendSensor(sensor &data) const;
-        int sendControl(control &ctrl) const;
+        int send(const string msg) const;
+        int sendSensor(const sensor &data) const;
+        int sendControl(const control &ctrl) const;
+        int sendPlaneState(const PlaneState &p) const;
     private:
         sockaddr_in out_addr;
         int out_sockfd;

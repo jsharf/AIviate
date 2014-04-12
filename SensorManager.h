@@ -3,6 +3,8 @@
 
 #include <ostream>
 #include <pthread.h>
+#include <ctime>
+#include <sys/time.h>
 #include "LinuxI2C/linux_i2c.h"
 #include "Sensor.h"
 #include "Comm.h"
@@ -52,6 +54,8 @@ struct config
     int frequency;
     int accel_resolution;
 };
+
+uint64_t get_time_in_us()
 
 char sensor_set_i2c_pointer(char addr, char reg);
 
