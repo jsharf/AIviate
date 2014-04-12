@@ -33,7 +33,7 @@ uint64_t get_time_in_us()
 {
     struct timeval tv;
     gettimeofday(&tv,NULL);
-    uint64_t time_in_micros = (1000000 * tv_sec + tv_usec);
+    uint64_t time_in_micros = (1000000 * tv.tv_sec + tv.tv_usec);
     return time_in_micros;
 }
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     // UDP sender object
     UDPSender snd(argv[1], argv[2]);
     // default sensor structs
-    sensor data;
+    sensor out_data;
     sensorf float_data;
     // Plane State variable
     PlaneState state;
@@ -70,7 +70,8 @@ int main(int argc, char *argv[])
     uint64_t last_time = get_time_in_us();
     while (true)
     {
-        float dt = (float)(get_time_in_us() - last_time);
+	// time difference in seconds with microsecond precision
+        float dt = ((float)(get_time_in_us() - last_time))/1000000.0f;
         // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
         sensor_read_gyro(&out_data);
@@ -81,10 +82,11 @@ int main(int argc, char *argv[])
         }
         else
             out_data.altitude = NAN;
-        sensor_to_float(data, float_data);
-        sensorf_to_planestate(float_data, state, dt);
-        snd.sendPlaneState(state);
-        last_time = time(NULL);
+        sensor_to_float(out_data, float_data);
+        snd.sendSensor(out_data);
+	sensorf_to_planestate(float_data, state, dt);
+        //snd.sendPlaneState(state);
+        last_time = get_time_in_us();
     }
 }
 

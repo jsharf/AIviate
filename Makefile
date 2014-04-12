@@ -34,9 +34,11 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o Comm.o
+ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o Comm.o Filters/Filters.o \
+           Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
-	./LinuxI2C/linux_i2c.o Sensor.o Comm.o -pthread
+	./LinuxI2C/linux_i2c.o Sensor.o Comm.o Filters/Filters.o Vector/Vector3d.o \
+	Vector/Quaternion.o -pthread
 
 ai-control: ControlManager.o control.o  Comm.o Sensor.o Filters/Filters.o\
 PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o

@@ -8,7 +8,7 @@
 #include "LinuxI2C/linux_i2c.h"
 #include "Sensor.h"
 #include "Comm.h"
-#include "Vector/Quaternion.h"
+#include "Vector/Vector.h"
 #include "Filters/Filters.h"
 #include <iostream>
 using namespace std;
@@ -55,7 +55,7 @@ struct config
     int accel_resolution;
 };
 
-uint64_t get_time_in_us()
+uint64_t get_time_in_us();
 
 char sensor_set_i2c_pointer(char addr, char reg);
 

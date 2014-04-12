@@ -14,7 +14,7 @@
 #include <cstring>
 #include "Sensor.h"
 #include "control.h"
-#include "Vector/Quaternion.cpp"
+#include "Vector/Vector.h"
 using namespace std;
 extern const int PACKETSIZE;
 

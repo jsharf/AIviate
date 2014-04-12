@@ -181,11 +181,11 @@ int UDPSender::sendControl(const control &ctrl) const
     return send(packet);
 }
 
-int sendPlaneState(const PlaneState &p) const
+int UDPSender::sendPlaneState(const PlaneState &p) const
 {
     char buf[256];
     sprintf(buf, "%f\t%f\t%f\t%f\n", \
-            p.orientation.x, p.orientation.y \
+            p.orientation.x, p.orientation.y, \
             p.orientation.z, p.orientation.w);
     string packet(buf);
     return send(packet);

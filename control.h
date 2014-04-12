@@ -11,6 +11,7 @@
 #include "Comm.h"
 #include <cmath>
 #include <ctime>
+#include "Vector/Vector.h"
 #include "Filters/Filters.h"
 #include "PIDControl/PIDControl.h"
 using namespace std;
@@ -21,8 +22,6 @@ using namespace std;
 #else
   #define OSTATIC 
 #endif
-
-const float PI = 3.1415926535f;
 
 struct control
 {
