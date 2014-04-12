@@ -82,10 +82,13 @@ int main(int argc, char *argv[])
         }
         else
             out_data.altitude = NAN;
+        // Convert sensor data to floating point
         sensor_to_float(out_data, float_data);
-        snd.sendSensor(out_data);
+        //snd.sendSensor(out_data);
+        // Filter sensor and convert data to quaternion state
 	sensorf_to_planestate(float_data, state, dt);
-        //snd.sendPlaneState(state);
+        // Send filtered quaternion data to control code
+        snd.sendPlaneState(state);
         last_time = get_time_in_us();
     }
 }
