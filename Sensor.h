@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ostream>
+#include "Vector/Quaternion.h"
 
 struct sensor
 {
@@ -21,5 +22,14 @@ struct sensorf
     float altitude;
     friend std::ostream& operator<<(std::ostream &out, sensorf &rhs);
 };
+
+struct PlaneState
+{
+    Quaternion orientation;
+    // TODO: get GPS location
+};
+
+void sensor_to_float(const sensor &a, sensor &f);
+void sensor_to_planestate(const sensorf &data, PlaneState p);
 
 #endif //SENSOR_H

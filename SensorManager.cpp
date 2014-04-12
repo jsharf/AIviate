@@ -43,9 +43,14 @@ int main(int argc, char *argv[])
     {
         cerr << "GY80 module failed initialization with code " << sensor_config_ret << endl;
     }
+    // UDP sender object
     UDPSender snd(argv[1], argv[2]);
-    sensor out_data;
-
+    // default sensor structs
+    sensor data;
+    sensorf float_data;
+    // Plane State variable
+    PlaneState state;
+    // Setup currAltitude singleton for altitude measurement
     currAltitude.isValid = 0;
     // create a separate thread to measure altitude
     pthread_t altitudeThread;
@@ -67,7 +72,8 @@ int main(int argc, char *argv[])
         }
         else
             out_data.altitude = NAN;
-        snd.sendSensor(out_data);
+        sensor_to_float(data, float_data);
+        sensor_fusion(float_data, state);
     }
 }
 

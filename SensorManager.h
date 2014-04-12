@@ -6,6 +6,8 @@
 #include "LinuxI2C/linux_i2c.h"
 #include "Sensor.h"
 #include "Comm.h"
+#include "Vector/Quaternion.h"
+#include "Filters/Filters.h"
 #include <iostream>
 using namespace std;
 
