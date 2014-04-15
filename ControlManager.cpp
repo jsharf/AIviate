@@ -1,4 +1,4 @@
-#include "control.h"
+#include "ControlManager.h"
 #include "Vector/Vector.h"
 
 using namespace std;

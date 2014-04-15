@@ -8,12 +8,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ctime>
-#include "Comm.h"
 #include <cmath>
 #include <ctime>
-#include "Vector/Vector.h"
-#include "Filters/Filters.h"
-#include "PIDControl/PIDControl.h"
 using namespace std;
 
 #define OPTIMIZE

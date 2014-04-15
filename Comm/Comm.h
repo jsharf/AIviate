@@ -13,8 +13,8 @@
 #include <string>
 #include <cstring>
 #include "Sensor.h"
-#include "control.h"
-#include "Vector/Vector.h"
+#include "Control.h"
+#include "../Vector/Vector.h"
 using namespace std;
 extern const int PACKETSIZE;
 

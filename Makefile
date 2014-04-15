@@ -34,31 +34,33 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor.o Comm.o Filters/Filters.o \
+ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Comm/Sensor.o Comm/Comm.o Filters/Filters.o \
            Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
-	./LinuxI2C/linux_i2c.o Sensor.o Comm.o Filters/Filters.o Vector/Vector3d.o \
+	./LinuxI2C/linux_i2c.o Comm/Sensor.o Comm/Comm.o Filters/Filters.o Vector/Vector3d.o \
 	Vector/Quaternion.o -pthread
 
-ai-control: ControlManager.o control.o  Comm.o Sensor.o Filters/Filters.o\
+ai-control: ControlManager.o Comm/Control.o  Comm/Comm.o Comm/Sensor.o Filters/Filters.o\
 PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control control.o Comm.o Sensor.o \
-    ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control Comm/Control.o Comm/Comm.o \
+    Comm/Sensor.o  ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
 
-ai-actuator: actuator.o ./Servo/Servo.o Comm.o ./LinuxI2C/linux_i2c.o control.o
-	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o control.o
+ai-actuator: actuator.o ./Servo/Servo.o Comm/Comm.o ./LinuxI2C/linux_i2c.o \
+             Comm/Control.o
+	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm/Comm.o \
+    ./Servo/Servo.o ./LinuxI2C/linux_i2c.o Comm/Control.o
 
 SensorManager.o: SensorManager.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -pthread -o SensorManager.o SensorManager.cpp
 
-Sensor.o: Sensor.cpp
-	g++ $(FLAGS) $(DEBUG) -c -o Sensor.o Sensor.cpp
+Comm/Sensor.o: Comm/Sensor.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o Comm/Sensor.o Comm/Sensor.cpp
 
-Comm.o: Comm.cpp
-	g++ $(FLAGS) $(DEBUG) -c -o Comm.o Comm.cpp
+Comm/Comm.o: Comm/Comm.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o Comm/Comm.o Comm/Comm.cpp
 
-control.o: control.cpp
-	g++ $(FLAGS) $(DEBUG) -c -o control.o control.cpp
+Comm/Control.o: Comm/Control.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o Comm/Control.o Comm/Control.cpp
 
 ControlManager.o: ControlManager.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ControlManager.o ControlManager.cpp

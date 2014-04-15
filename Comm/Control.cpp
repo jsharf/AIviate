@@ -1,4 +1,4 @@
-#include "control.h"
+#include "Control.h"
 using namespace std;
 
 ostream& operator<<(ostream &out, control &rhs)

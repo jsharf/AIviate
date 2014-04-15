@@ -2,7 +2,7 @@
 #define ACTUATOR_H
 
 #include "LinuxI2C/linux_i2c.h"
-#include "control.h"
+#include "Comm/Control.h"
 #include <iostream>
 using namespace std;
 

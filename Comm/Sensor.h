@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <ostream>
-#include "Vector/Vector.h"
-#include "Filters/Filters.h"
+#include "../Vector/Vector.h"
+#include "../Filters/Filters.h"
 #include <ctime>
 #include <cmath>
 
