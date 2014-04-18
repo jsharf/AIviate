@@ -13,9 +13,9 @@ UDPListener::UDPListener(string port, int debug) : mDebug(debug)
         return;
     }
     // set nonblocking mode
-    int flags = fcntl(in_sockfd, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(in_sockfd, F_SETFL, flags);
+    //int flags = fcntl(in_sockfd, F_GETFL);
+    //flags |= O_NONBLOCK;
+    //fcntl(in_sockfd, F_SETFL, flags);
 
     bzero((char *) &in_addr, sizeof(in_addr));
     int portno = atoi(port.c_str());

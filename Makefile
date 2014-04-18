@@ -46,9 +46,9 @@ PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o
     Comm/Sensor.o  ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
 
 ai-actuator: actuator.o ./Servo/Servo.o Comm/Comm.o ./LinuxI2C/linux_i2c.o \
-             Comm/Control.o
+             Comm/Control.o Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-actuator actuator.o Comm/Comm.o \
-    ./Servo/Servo.o ./LinuxI2C/linux_i2c.o Comm/Control.o
+    ./Servo/Servo.o ./LinuxI2C/linux_i2c.o Comm/Control.o Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 
 SensorManager.o: SensorManager.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -pthread -o SensorManager.o SensorManager.cpp

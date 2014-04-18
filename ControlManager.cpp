@@ -1,9 +1,14 @@
-#include "ControlManager.h"
+//#include "ControlManager.h"
+#include "Comm/Control.h"
 #include "Vector/Vector.h"
+#include "Comm/Comm.h"
+#include "Comm/Sensor.h"
+#include "Filters/Filters.h"
+#include "PIDControl/PIDControl.h"
 
 using namespace std;
 
-void pid_control(sensorf &data, control &ctrl, float delta);
+void pid_control(PlaneState &data, control &ctrl, float delta);
 
 /*
    Control Loop
@@ -39,7 +44,8 @@ int main(int argc, char *argv[])
     UDPSender snd(argv[2], argv[3]);
 
     control out_control;
-    sensorf in_data;
+    //sensorf in_data;
+    PlaneState in_state;
 
     clock_t prev_time = clock(), cur_time;
     float delta;
@@ -54,16 +60,16 @@ int main(int argc, char *argv[])
         if (a != "FAIL")
         {
             // Listen for sensor data
-            lst.receiveSensor(in_data);
+            lst.receivePlaneState(in_state);
 
             // Write debug output
-            cerr << "SENSORF: \n{\n\t ax: " \
+            /*cerr << "SENSORF: \n{\n\t ax: " \
             << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
             << "\n\t gx: " << in_data.gx << "\n\t gy: " << in_data.gy << "\n\t gz: " << in_data.gz \
             << "\n\t mx: " << in_data.mx << "\n\t my: " << in_data.my << "\n\t mz: " << in_data.mz \
             << "\n\t altitude: " << in_data.altitude \
             << "\n}" << endl;
-
+*/
             // Recalculate delta
             // TODO: put timestamp on sensor packets
             //       so we can get true delta
@@ -73,17 +79,24 @@ int main(int argc, char *argv[])
             prev_time = cur_time;
 
             // Run the PID loop
-            pid_control(in_data, out_control, delta);
+	    cout << "DT: " << delta << endl;
+            pid_control(in_state, out_control, delta);
 
             // Send the control structure
             snd.sendControl(out_control);
-        }
+
+	//	snd.sendPlaneState(in_state);
+            cout << "X: " << in_state.orientation.x << "Y: " << in_state.orientation.y << "Z: " << in_state.orientation.z << "W: " << in_state.orientation.w << endl; 
+	}else
+	{
+	;//	cerr << "FAILING TO READ!!! Is ai-sensor started?" << endl;
+	}
     }
 }
 
 
 // Values should be handed over in m/s/s, rad/s
-void pid_control(sensorf &data, control &ctrl, float delta)
+void pid_control(PlaneState &data, control &ctrl, float delta)
 {
     // Filter Constants
     static float rollFK = 0.5;
@@ -93,24 +106,24 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     // PID Roll Constants
     static float rollKP = 1;
     static float rollKI = 0;
-    static float rollKD = 0.1;
+    static float rollKD = 0;
 
     // PID Pitch Constants
     static float pitchKP = 1;
     static float pitchKI = 0;
-    static float pitchKD = 0.1;
+    static float pitchKD = 0;
 
     // PID Yaw Constants
     static float yawKP = 1;
     static float yawKI = 0;
-    static float yawKD = 0.1;
+    static float yawKD = 0;
 
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK),
     yawFilter(yawFK);
     static PIDController rollPID(rollKP, rollKI, rollKD), pitchPID(pitchKP,
     pitchKI, pitchKD), yawPID(yawKP, yawKI, yawKD);
 
-    Vector3d accelVec(data.ax, data.ay, data.az), magVec(data.mx, data.my, data.mz);
+/*    Vector3d accelVec(data.ax, data.ay, data.az), magVec(data.mx, data.my, data.mz);
 
     //double accelVecMag = accelVec.magnitude();
     accelVec = accelVec.unit();
@@ -131,11 +144,20 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     float pitch = pitchFilter.calculate(accelPitch, data.gy, delta);
     float roll = -rollFilter.calculate(accelRoll, -data.gx, delta);
     //float yaw = yawFilter.calculate(accelAngZ, data.gz, delta);
+*/
+    Vector3d gravityVec = Vector3d::i.rotate(data.orientation);
+    
+    Vector2d gravityVecXY = Vector2d(gravityVec.x, gravityVec.y);
+    Vector2d gravityVecXZ = Vector2d(gravityVec.x, gravityVec.z);
+    Vector2d gravityVecYZ = Vector2d(gravityVec.y, gravityVec.z);
 
+    double roll = gravityVecYZ.angleTo(Vector2d::j)/PI;
+    double pitch = gravityVecXZ.angleTo(Vector2d::j)/PI;
+    double yaw = gravityVecXY.angleTo(Vector2d::i)/PI;
 
     //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
 
-    std::cout << "Angles: " << accelPitch << "\t" << data.gy << "\t" << accelRoll << "\t" << -data.gx << "\t" << pitch << "\t" << roll << std::endl;
+    //std::cout << "Angles: " << accelPitch << "\t" << data.gy << "\t" << accelRoll << "\t" << -data.gx << "\t" << pitch << "\t" << roll << std::endl;
 
     // X-axis control via ailerons
     float aileron_out = rollPID.calculate(roll, 0, delta);
@@ -145,7 +167,8 @@ void pid_control(sensorf &data, control &ctrl, float delta)
     float elevator_out = pitchPID.calculate(pitch, 0, delta);
     ctrl.elev = elevator_out; //+ ElevatorCenter;
 
-    ctrl.rudder = 0; // default value (to be changed)
+    float rudder_out = yawPID.calculate(yaw, 0, delta);
+    ctrl.rudder = rudder_out; // default value (to be changed)
 
     // default value, change this later when we get throttling figured out
     ctrl.throttle = 1.0f;

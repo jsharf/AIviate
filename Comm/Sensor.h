@@ -33,6 +33,6 @@ struct PlaneState
 };
 
 void sensor_to_float(const sensor &a, sensorf &f);
-void sensorf_to_planestate(const sensorf &data, PlaneState p, float dt);
+void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt);
 
 #endif //SENSOR_H

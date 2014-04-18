@@ -3,6 +3,8 @@
 
 #include "LinuxI2C/linux_i2c.h"
 #include "Comm/Control.h"
+#include "Comm/Comm.h"
+#include "Vector/Vector.h"
 #include <iostream>
 using namespace std;
 
