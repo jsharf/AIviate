@@ -42,11 +42,13 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     static Quaternion oldOrientation = Quaternion::identity;
     
     Vector3d gravity_vector(data.ax, data.ay, data.az);
-    Vector3d gyro_vector (data.gx, data.dy, data.gz);
+    Vector3d gyro_vector(data.gx, data.dy, data.gz);
+    Vector3d mag_vector(data.mx, data.my, data.mz);
     double ITheta = gyro_vector.magnitude() * dt;
     
     Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
     Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
+    Quaternion MagOrientation = Vector3d::i.quaternionTo(mag_vector);
     p.orientation = Quaternion::identity.slerp(oldOrientation * IGyroQuat, K_comp) *
         Quaternion::identity.slerp(AccOrientation, 1-K_comp);
     oldOrientation = p.orientation;
