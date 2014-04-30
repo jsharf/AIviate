@@ -46,21 +46,22 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     Vector3d mag_vector(data.mx, data.my, data.mz);
 
     // orthonormal eigenbasis (u,v,w) using accelerometer and magnetic compass.
-    Vector3d u = gravity_vector.normalize();
+    Vector3d u = gravity_vector.unit();
 
     Vector3d proj = mag_vector.project(u);
     Vector3d perp = mag_vector - proj;
-    Vector3d v = perp.normalize();
+    Vector3d v = perp.unit();
 
-    Vector3d w = (u.cross(v)).normalize();
+    Vector3d w = (u.cross(v)).unit();
 
-    // perp and gy
+    // orientation quaternion
+    Quaternion orientation = w.quaternionTo(Vector3d::k);
 
     double ITheta = gyro_vector.magnitude() * dt;
     
     Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
-    Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
+    //Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
     p.orientation = Quaternion::identity.slerp(oldOrientation * IGyroQuat, K_comp) *
-        Quaternion::identity.slerp(AccOrientation, 1-K_comp);
+        Quaternion::identity.slerp(orientation, 1-K_comp);
     oldOrientation = p.orientation;
 }
