@@ -42,7 +42,7 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     static Quaternion oldOrientation = Quaternion::identity;
     
     Vector3d gravity_vector(data.ax, data.ay, data.az);
-    Vector3d gyro_vector(data.gx, data.dy, data.gz);
+    Vector3d gyro_vector(data.gx, data.gy, data.gz);
     Vector3d mag_vector(data.mx, data.my, data.mz);
 
     // orthonormal eigenbasis (u,v,w) using accelerometer and magnetic compass.
