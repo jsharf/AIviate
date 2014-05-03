@@ -158,7 +158,7 @@ int sensor_accelerometer_standby()
             std::cerr << "Error putting accelerometer in standby (accelerometer_standby)" << std::endl;
         return 0;
     }
-    power_ctl &= 0xF7 ;
+    power_ctl &= 0xF7;
     ret = sensor_write(accel_addr, ACCEL_POWER_CTL, &power_ctl, 1);
     if (ret != 1)
     {
