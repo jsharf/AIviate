@@ -7,8 +7,13 @@ INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters,./Vector
 
 all: ai-sensor ai-control ai-actuator
 
+run: all
+	./run.sh
+terminate:
+	pkill ai-sensor && pkill ai-control && pkill ai-actuator
+
 clean:
-	rm -f ai-control ai-source ai-actuator *.o
+	rm -f ai-control ai-sensor ai-actuator *.o
 
 ####################
 #                  #
