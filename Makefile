@@ -5,7 +5,7 @@ FLAGS=-std=c++0x
 
 INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters,./Vector
 
-all: ai-sensor ai-control ai-actuator
+all: ai-sensor ai-control ai-actuator compat_fg
 
 run: all
 	./run.sh
@@ -13,7 +13,7 @@ terminate:
 	pkill ai-sensor && pkill ai-control && pkill ai-actuator
 
 clean:
-	rm -f ai-control ai-sensor ai-actuator *.o
+	rm -f ai-control ai-sensor ai-actuator *.o fg_simu/compat_fg
 
 ####################
 #                  #
@@ -94,3 +94,8 @@ Vector/Quaternion.o: Vector/Quaternion.cpp
 
 Vector/Vector2d.o: Vector/Vector2d.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Vector/Vector2d.o ./Vector/Vector2d.cpp
+
+compat_fg: Comm/Comm.o Comm/Sensor.o Vector/Vector3d.o Vector/Quaternion.o
+	g++ fg_simu/compat_fg.cpp -o fg_simu/compat_fg \
+    $(FLAGS) $(DEBUG) -I $(INCLUDES) Comm/Comm.o \
+    Comm/Sensor.o Vector/Vector3d.o Vector/Quaternion.o 

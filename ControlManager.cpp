@@ -145,7 +145,7 @@ void pid_control(PlaneState &data, control &ctrl, float delta)
     float roll = -rollFilter.calculate(accelRoll, -data.gx, delta);
     //float yaw = yawFilter.calculate(accelAngZ, data.gz, delta);
 */
-    Vector3d gravityVec = Vector3d::i.rotate(data.orientation);
+    Vector3d gravityVec = (Vector3d::j * -1).rotate(data.orientation);
     
     Vector2d gravityVecXY = Vector2d(gravityVec.x, gravityVec.y);
     Vector2d gravityVecXZ = Vector2d(gravityVec.x, gravityVec.z);
