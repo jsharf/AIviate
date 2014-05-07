@@ -5,20 +5,20 @@
       <line_separator>newline</line_separator>
       <var_separator>tab</var_separator>
       <chunk>
-         <name>/orientation/roll-deg</name>
-         <node>/orientation/roll-deg</node>
+         <name>/fdm/jsbsim/attitude/phi-deg</name>
+         <node>/fdm/jsbsim/attitude/phi-deg</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
       <chunk>
-         <name>/orientation/pitch-deg</name>
-         <node>/orientation/pitch-deg</node>
+         <name>/fdm/jbsim/attitude/theta-deg</name>
+         <node>/fdm/jbsim/attitude/theta-deg</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
       <chunk>
-         <name>/instrumentation/magnetic-compass/indicated-heading-deg</name>
-         <node>/instrumentation/magnetic-compass/indicated-heading-deg</node>
+         <name>/fdm/jbsim/attitude/psi-deg</name>
+         <node>/fdm/jbsim/attitude/psi-deg</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
