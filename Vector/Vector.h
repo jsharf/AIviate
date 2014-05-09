@@ -44,6 +44,10 @@ ALL ANGLES ARE IN RADIANS
 #define DEG2RAD(_DEG) (((_DEG) * 71 / 4068))
 #define RAD2DEG(_RAD) (((_RAD) * 4068 / 71))
 
+// Forward declarations
+class Vector3d;
+class Vector2d;
+
 class Quaternion
 {
     public:
@@ -71,6 +75,9 @@ class Quaternion
     Quaternion unit();
     fp_type distance(const Quaternion& other) const;
     fp_type dot(const Quaternion& other) const;
+    Vector3d getAxis() const;
+    fp_type getAngle() const;
+    Vector3d getAxisAngle(fp_type& angle) const;
 
     Quaternion slerp(const Quaternion& endpt, fp_type t) const;     // Perform a spherical linear interpolation between this quaternion and an end quaternion
 

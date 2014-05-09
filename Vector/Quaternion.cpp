@@ -36,6 +36,25 @@ Quaternion Quaternion::operator+(const Quaternion& other) const
     return ret;
 }
 
+Vector3d Quaternion::getAxis() const
+{
+    fp_type angle = getAngle();
+    fp_type conversion = (1/(sin(0.5*angle)));
+    return Vector3d(conversion*x, conversion*y, conversion*z);
+}
+
+fp_type Quaternion::getAngle() const
+{
+    return 2.0*asin(sqrt(pow(x,2) + pow(y,2) + pow(z,2))); 
+}
+
+Vector3d Quaternion::getAxisAngle(fp_type &angle) const
+{
+    angle = 2.0*asin(sqrt(pow(x,2) + pow(y,2) + pow(z,2))); 
+    fp_type conversion = (1/(sin(0.5*angle)));
+    return Vector3d(conversion*x, conversion*y, conversion*z);
+}
+
 void Quaternion::operator+=(const Quaternion& other)
 {
     this->x += other.x;
