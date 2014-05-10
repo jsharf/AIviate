@@ -5,20 +5,20 @@
       <line_separator>newline</line_separator>
       <var_separator>tab</var_separator>
       <chunk>
-         <name>/fdm/jsbsim/attitude/phi-deg</name>
-         <node>/fdm/jsbsim/attitude/phi-deg</node>
+         <name>/fdm/jsbsim/attitude/phi-rad</name>
+         <node>/fdm/jsbsim/attitude/phi-rad</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
       <chunk>
-         <name>/fdm/jbsim/attitude/theta-deg</name>
-         <node>/fdm/jbsim/attitude/theta-deg</node>
+         <name>/fdm/jsbsim/attitude/theta-rad</name>
+         <node>/fdm/jsbsim/attitude/theta-rad</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
       <chunk>
-         <name>/fdm/jbsim/attitude/psi-deg</name>
-         <node>/fdm/jbsim/attitude/psi-deg</node>
+         <name>/fdm/jsbsim/attitude/psi-rad</name>
+         <node>/fdm/jsbsim/attitude/psi-rad</node>
          <type>float</type>
          <format>%f</format>
       </chunk>
