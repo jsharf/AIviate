@@ -55,10 +55,10 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
 
     Vector3d mag_proj = mag_vector.project(ugrav);
     Vector3d mag_perp = mag_vector - mag_proj;
-    Vector3d umag_perp = perp.unit();
+    Vector3d umag_perp = mag_perp.unit();
 
     Vector3d up_now = Vector3d::k + ugrav;
-    Vector3d forward_now = Vector3d::i - umag_perp;
+    Vector3d front_now = Vector3d::i - umag_perp;
     //Vector3d w = (u.cross(v)).unit();
 
     // orientation quaternion
@@ -69,10 +69,9 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
     //Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
     static Vector3d up  = (oldUp.rotate(IGyroQuat))*(K_comp) + up_now*(1-K_comp);
-        Quaternion::identity.slerp(orientation, 1-K_comp);
     oldUp = up;
 
-    static Vector3d front = (oldFront.rotate(IGyroQuat))*(K_comp) + up_now*(1-K_comp);
+    static Vector3d front = (oldFront.rotate(IGyroQuat))*(K_comp) + front_now*(1-K_comp);
     oldFront = front;
 
     // implement triad method to determine attitude rotation matrix
