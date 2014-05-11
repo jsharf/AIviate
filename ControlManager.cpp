@@ -79,8 +79,9 @@ int main(int argc, char *argv[])
             prev_time = cur_time;
 
             // Run the PID loop
-	    //cout << "DT: " << delta << endl;
-            pid_control(in_state, out_control, delta);
+	        //cout << "DT: " << delta << endl;
+            // delta isn't properly implemented, use timesteps of 1
+            pid_control(in_state, out_control, 1);
 
             // Send the control structure
             snd.sendControl(out_control);
@@ -159,19 +160,19 @@ void pid_control(PlaneState &data, control &ctrl, float delta)
     static float yawFK = 0.5;
 
     // PID Roll Constants
-    static float rollKP = 1;
+    static float rollKP = 5;
     static float rollKI = 0;
-    static float rollKD = 0;
+    static float rollKD = 0.1;
 
     // PID Pitch Constants
-    static float pitchKP = 1;
+    static float pitchKP = 5;
     static float pitchKI = 0;
-    static float pitchKD = 0;
+    static float pitchKD = 0.1;
 
     // PID Yaw Constants
-    static float yawKP = 1;
+    static float yawKP = 10;
     static float yawKI = 0;
-    static float yawKD = 0;
+    static float yawKD = 0.1;
 
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK),
     yawFilter(yawFK);
@@ -217,25 +218,43 @@ void pid_control(PlaneState &data, control &ctrl, float delta)
 
     getEulerDeg(data.orientation, yaw, pitch, roll);
 
-    cout << "Yaw: " << yaw << "\t Pitch: " << pitch << "\t Roll: " << roll <<
-    std::endl;
-
     //pc.printf("Roll: %+8f | Pitch: %+8f | AccelAngX: %+8f | AccelAngY: %+8f | GyroAngX: %+8f | GyroAngY: %+8f\r\n",roll,pitch,accelAngX,accelAngY,-gx,gy);
 
     //std::cout << "Angles: " << accelPitch << "\t" << data.gy << "\t" << accelRoll << "\t" << -data.gx << "\t" << pitch << "\t" << roll << std::endl;
 
     // X-axis control via ailerons
     float aileron_out = rollPID.calculate(roll, 0, delta);
-    ctrl.ail = aileron_out; //+ AileronCenter;
+    if (aileron_out > 90 && aileron_out < -90)
+        aileron_out = 180-aileron_out;
+    ctrl.ail = aileron_out/90.0; //+ AileronCenter;
+    if (ctrl.ail > 1)
+        ctrl.ail = 1;
+    if (ctrl.ail < -1)
+        ctrl.ail = -1;
 
     // Y-axis control via elevators
     float elevator_out = pitchPID.calculate(pitch, 0, delta);
-    ctrl.elev = elevator_out; //+ ElevatorCenter;
+    ctrl.elev = -1.0*elevator_out/90.0f; //+ ElevatorCenter;
+    if (ctrl.elev > 1)
+        ctrl.elev = 1;
+    if (ctrl.elev < -1)
+        ctrl.elev = -1;
 
-    //float rudder_out = yawPID.calculate(yaw, 0, delta);
-    //ctrl.rudder = rudder_out; // default value (to be changed)
+    double yaw_target = 0;
+    if (yaw > 180)
+        yaw_target = 360;
+    float rudder_out = yawPID.calculate(yaw, yaw_target, delta);
+    ctrl.rudder = (rudder_out)/180.0; // default value (to be changed)
+    if (ctrl.rudder > 1)
+        ctrl.rudder = 1;
+    if (ctrl.rudder < -1)
+        ctrl.rudder = -1;
 
     // default value, change this later when we get throttling figured out
     ctrl.throttle = 1.0f;
-}
+    
+    cout << "Yaw: " << yaw << "\t Pitch: " << pitch << "\t Roll: " << roll <<
+    "\t ail: " << ctrl.ail << "\t elev: " << ctrl.elev << "\t rudder: " <<
+    ctrl.rudder << std::endl;
 
+}
