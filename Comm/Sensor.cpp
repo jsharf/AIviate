@@ -52,6 +52,7 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     // an orthonormal eigenbasis from the gravity and magnetic compass vectors
     // to force them to be orthogonal
     Vector3d ugrav = gravity_vector.unit();
+    Quaternion toGrav = Vector3d::i.quaternionTo(ugrav);
 
     Vector3d mag_proj = mag_vector.project(ugrav);
     Vector3d mag_perp = mag_vector - mag_proj;
@@ -119,4 +120,5 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     q.z = k*(A[1].x - A[0].y);
     
     p.orientation = q;
+    //p.orientation = toGrav;
 }
