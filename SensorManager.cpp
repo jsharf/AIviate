@@ -37,6 +37,16 @@ uint64_t get_time_in_us()
     return time_in_micros;
 }
 
+void waitns(long ns)
+{
+	// wait 5 milliseconds
+	struct timespec delay = { 0,0};
+	delay.tv_sec = 0;
+	// 5 milliseconds = 5 nanoseconds * 10^6 nanoseconds/millisecond.
+	delay.tv_nsec = (2 + (3<<OSS)) * (1000000);
+	nanosleep(&delay, NULL);
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 3)
@@ -74,8 +84,11 @@ int main(int argc, char *argv[])
         float dt = ((float)(get_time_in_us() - last_time))/1000000.0f;
         // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
-        sensor_read_gyro(&out_data);
+        
+	sensor_read_gyro(&out_data);
+
         sensor_read_compass(&out_data);
+
         if (currAltitude.isValid)
         {
             out_data.altitude = currAltitude.altitude;
