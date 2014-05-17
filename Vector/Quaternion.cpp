@@ -30,6 +30,21 @@ Quaternion::Quaternion()
     Quaternion(0,0,0,0);
 }
 
+// initialize quaternion from tait-bryan euler angles in radians
+// http://en.wikipedia.org/wiki/Euler_angles#Vehicles_and_moving_frames
+Quaternion::Quaternion(fp_type yaw, fp_type pitch, fp_type roll)
+{
+    fp_type zd2 = fp_type(0.5)*yaw; fp_type yd2 = fp_type(0.5)*pitch; fp_type xd2 = fp_type(0.5)*roll;
+    fp_type Szd2 = sin(zd2); fp_type Syd2 = sin(yd2); fp_type Sxd2 = sin(xd2);
+    fp_type Czd2 = cos(zd2); fp_type Cyd2 = cos(yd2); fp_type Cxd2 = cos(xd2);
+    fp_type Cxd2Czd2 = Cxd2*Czd2; fp_type Cxd2Szd2 = Cxd2*Szd2;
+    fp_type Sxd2Szd2 = Sxd2*Szd2; fp_type Sxd2Czd2 = Sxd2*Czd2;
+    w = Cxd2Czd2*Cyd2 + Sxd2Szd2*Syd2;
+    x = Sxd2Czd2*Cyd2 - Cxd2Szd2*Syd2;
+    y = Cxd2Czd2*Syd2 + Sxd2Szd2*Cyd2;
+    z = Cxd2Szd2*Cyd2 - Sxd2Czd2*Syd2;
+}
+
 Quaternion Quaternion::operator+(const Quaternion& other) const
 {
     Quaternion ret(other.x + this->x, other.y + this->y, other.z + this->z, other.w + this->w);
@@ -140,6 +155,47 @@ bool Quaternion::operator==(const Quaternion& other) const
 #else
     return ((abs(this->x-other.x)<=COMPARE_ACCURACY)&&(abs(this->y-other.y)<=COMPARE_ACCURACY)&&(abs(this->z-other.z)<=COMPARE_ACCURACY)&&(abs(this->w-other.w)<=COMPARE_ACCURACY));
 #endif
+}
+
+/// write the euler angles into the references
+// zRad is yaw
+// yRad is pitch
+// xRad is roll
+// as per simgear/flightgear conventions
+void Quaternion::getEulerRad(fp_type& zRad, fp_type& yRad, fp_type& xRad) const
+{
+    fp_type sqrQW = w*w;
+    fp_type sqrQX = x*x;
+    fp_type sqrQY = y*y;
+    fp_type sqrQZ = z*z;
+
+    fp_type num = 2*(y*z + w*x);
+    fp_type den = sqrQW - sqrQX - sqrQY + sqrQZ;
+    if (fabs(den) <= std::numeric_limits<fp_type>::min() &&
+        fabs(num) <= std::numeric_limits<fp_type>::min())
+      xRad = 0;
+    else
+      xRad = atan2(num, den);
+
+    fp_type tmp = 2*(x*z - w*y);
+    if (tmp <= -1)
+      yRad = fp_type(0.5)*PI;
+    else if (1 <= tmp)
+      yRad = -fp_type(0.5)*PI;
+    else
+      yRad = -asin(tmp);
+
+    num = 2*(x*y + w*z);
+    den = sqrQW + sqrQX - sqrQY - sqrQZ;
+    if (fabs(den) <= std::numeric_limits<fp_type>::min() &&
+        fabs(num) <= std::numeric_limits<fp_type>::min())
+      zRad = 0;
+    else {
+      fp_type psi = atan2(num, den);
+      if (psi < 0)
+        psi += 2*PI;
+      zRad = psi;
+    }
 }
 
 Quaternion Quaternion::conjugate() const

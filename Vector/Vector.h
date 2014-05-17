@@ -55,6 +55,7 @@ class Quaternion
 
     Quaternion(fp_type _x, fp_type _y, fp_type _z, fp_type _w);
     Quaternion();
+    Quaternion(fp_type yaw, fp_type pitch, fp_type roll);
 
     Quaternion operator+(const Quaternion& other) const;
     void operator+=(const Quaternion& other);
@@ -69,6 +70,8 @@ class Quaternion
     void operator/=(fp_type scalar);
 
     bool operator==(const Quaternion& other) const;
+
+    void getEulerRad(fp_type& zRad, fp_type& yRad, fp_type& xRad) const;
 
     Quaternion conjugate() const;
     fp_type norm();

@@ -6,9 +6,12 @@
 #include "Filters/Filters.h"
 #include "PIDControl/PIDControl.h"
 #include <limits>
+#include <string>
 using namespace std;
 
 void pid_control(PlaneState &data, control &ctrl, float delta);
+
+static int SENSOR_SIMU = 0;
 
 /*
    Control Loop
@@ -33,18 +36,21 @@ void usage()
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4)
+    if (argc != 4 && argc != 5)
     {
         cerr << "Wrong number of arguments" << endl;
         usage();
         return 1;
     }
 
+    if (argc == 5 && string(argv[4]) == "-d")
+        SENSOR_SIMU = 1;
+
     UDPListener lst(argv[1]);
     UDPSender snd(argv[2], argv[3]);
 
     control out_control;
-    //sensorf in_data;
+    sensorf in_data;
     PlaneState in_state;
 
     clock_t prev_time = clock(), cur_time;
@@ -60,8 +66,36 @@ int main(int argc, char *argv[])
         if (a != "FAIL")
         {
             // Listen for sensor data
-            lst.receivePlaneState(in_state);
-
+            // and simulate the filtering algorithms on it
+            if (SENSOR_SIMU)
+            {
+                lst.receiveSensor(in_data);
+                fp_type phi, theta, psi;
+                phi = in_data.mx;
+                theta = in_data.my;
+                psi = in_data.mz;
+              
+                fp_type roll, pitch, yaw;
+                roll = phi;
+                pitch = theta;
+                yaw = psi;
+               
+                Quaternion orientation(yaw, pitch, roll);
+                Vector3d mag = Vector3d::i.rotate(orientation);
+                Quaternion opp = mag.quaternionTo(Vector3d::i);
+                mag = Vector3d::i.rotate(opp);
+                in_data.mx = mag.x; in_data.my = mag.y; in_data.mz = mag.z;
+                
+                // delta isn't implemented properly, use timesteps of 1
+                
+                sensorf_to_planestate(in_data, in_state, 1);
+                cout << "DEBUG" << endl;
+            } 
+            else
+            {
+                // else just receive clean orientation data
+                lst.receivePlaneState(in_state);
+            }
             // Write debug output
             /*cerr << "SENSORF: \n{\n\t ax: " \
             << in_data.ax << "\n\t ay: " << in_data.ay << "\n\t az: " << in_data.az \
@@ -79,16 +113,16 @@ int main(int argc, char *argv[])
             prev_time = cur_time;
 
             // Run the PID loop
-	        //cout << "DT: " << delta << endl;
+            //cout << "DT: " << delta << endl;
             // delta isn't properly implemented, use timesteps of 1
             pid_control(in_state, out_control, 1);
-
+            
             // Send the control structure
             snd.sendControl(out_control);
 
-	//	snd.sendPlaneState(in_state);
+
         //    cout << "X: " << in_state.orientation.x << "Y: " << in_state.orientation.y << "Z: " << in_state.orientation.z << "W: " << in_state.orientation.w << endl; 
-	}
+        }
         else
         {
             ;//	cerr << "FAILING TO READ!!! Is ai-sensor started?" << endl;
@@ -96,56 +130,10 @@ int main(int argc, char *argv[])
     }
 }
 
-/// write the euler angles into the references
-// zRad is yaw
-// yRad is pitch
-// xRad is roll
-// as per simgear/flightgear conventions
-void getEulerRad(const Quaternion& o, fp_type& zRad, fp_type& yRad, fp_type& xRad)
-{
-    double w = o.w;
-    double x = o.x;
-    double y = o.y;
-    double z = o.z;
-    
-    fp_type sqrQW = w*w;
-    fp_type sqrQX = x*x;
-    fp_type sqrQY = y*y;
-    fp_type sqrQZ = z*z;
-
-    fp_type num = 2*(y*z + w*x);
-    fp_type den = sqrQW - sqrQX - sqrQY + sqrQZ;
-    if (fabs(den) <= std::numeric_limits<fp_type>::min() &&
-        fabs(num) <= std::numeric_limits<fp_type>::min())
-      xRad = 0;
-    else
-      xRad = atan2(num, den);
-
-    fp_type tmp = 2*(x*z - w*y);
-    if (tmp <= -1)
-      yRad = fp_type(0.5)*PI;
-    else if (1 <= tmp)
-      yRad = -fp_type(0.5)*PI;
-    else
-      yRad = -asin(tmp);
-
-    num = 2*(x*y + w*z);
-    den = sqrQW + sqrQX - sqrQY - sqrQZ;
-    if (fabs(den) <= std::numeric_limits<fp_type>::min() &&
-        fabs(num) <= std::numeric_limits<fp_type>::min())
-      zRad = 0;
-    else {
-      fp_type psi = atan2(num, den);
-      if (psi < 0)
-        psi += 2*PI;
-      zRad = psi;
-    }
-}
-
 /// get the euler angles in degrees
 void getEulerDeg(const Quaternion& o, fp_type& yaw, fp_type& pitch, fp_type& roll)
 {
-    getEulerRad(o, yaw, pitch, roll);
+    o.getEulerRad(yaw, pitch, roll);
     yaw = RAD2DEG(yaw);
     pitch = RAD2DEG(pitch);
     roll = RAD2DEG(roll);
@@ -162,17 +150,17 @@ void pid_control(PlaneState &data, control &ctrl, float delta)
     // PID Roll Constants
     static float rollKP = 5;
     static float rollKI = 0;
-    static float rollKD = 0.1;
+    static float rollKD = -1;
 
     // PID Pitch Constants
     static float pitchKP = 5;
     static float pitchKI = 0;
-    static float pitchKD = 0.1;
+    static float pitchKD = -1;
 
     // PID Yaw Constants
     static float yawKP = 10;
     static float yawKI = 0;
-    static float yawKD = 0.1;
+    static float yawKD = -1;
 
     static ComplementaryFilter rollFilter(rollFK), pitchFilter(pitchFK),
     yawFilter(yawFK);

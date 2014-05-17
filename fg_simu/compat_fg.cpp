@@ -12,20 +12,6 @@ void usage()
     std::cerr << "Usage: compat_fg <inport> <out addr> <out port>" << std::endl;
 }
 /// Return a quaternion from euler angles
-Quaternion fromEulerRad(fptype yaw, fptype pitch, fptype roll)
-{
-    Quaternion q;
-    fptype zd2 = fptype(0.5)*yaw; fptype yd2 = fptype(0.5)*pitch; fptype xd2 = fptype(0.5)*roll;
-    fptype Szd2 = sin(zd2); fptype Syd2 = sin(yd2); fptype Sxd2 = sin(xd2);
-    fptype Czd2 = cos(zd2); fptype Cyd2 = cos(yd2); fptype Cxd2 = cos(xd2);
-    fptype Cxd2Czd2 = Cxd2*Czd2; fptype Cxd2Szd2 = Cxd2*Szd2;
-    fptype Sxd2Szd2 = Sxd2*Szd2; fptype Sxd2Czd2 = Sxd2*Czd2;
-    q.w = Cxd2Czd2*Cyd2 + Sxd2Szd2*Syd2;
-    q.x = Sxd2Czd2*Cyd2 - Cxd2Szd2*Syd2;
-    q.y = Cxd2Czd2*Syd2 + Sxd2Szd2*Cyd2;
-    q.z = Cxd2Szd2*Cyd2 - Sxd2Czd2*Syd2;
-    return q;
-}
 int main(int argc, char *argv[])
 {
     if (argc != 4)
@@ -62,7 +48,7 @@ int main(int argc, char *argv[])
        
         PlaneState p;
 
-        Quaternion orientation = fromEulerRad(yaw, pitch, roll);
+        Quaternion orientation(yaw, pitch, roll);
 
         Vector3d axis = Vector3d::i.rotate(orientation);
 
