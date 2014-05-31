@@ -26,6 +26,7 @@
 #else
 #include <cmath>
 #include <iostream>
+#include <limits>
 #define fp_type double
 #define PI (3.141592653)
 #define TWO_PI (2*PI)
