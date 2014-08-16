@@ -42,6 +42,7 @@ class UDPSender
         int sendSensor(const sensor &data) const;
         int sendControl(const control &ctrl) const;
         int sendPlaneState(const PlaneState &p) const;
+        int sendTwoVectors(const Vector3d &a, const Vector3d &b) const;
     private:
         sockaddr_in out_addr;
         int out_sockfd;
