@@ -42,6 +42,16 @@ int I2CBus::i2c_write(char i2c_addr, const char* buf, unsigned int len)
     return ret_len;
 }
 
+int I2CBus::lock()
+{
+    pthread_mutex_lock(&mymutex);
+}
+
+int I2CBus::unlock()
+{
+    pthread_mutex_unlock(&mymutex);
+}
+
 int I2CBus::i2c_read(char* buf, unsigned int len)
 {
     pthread_mutex_lock(&mymutex);
