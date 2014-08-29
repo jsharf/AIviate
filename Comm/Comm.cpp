@@ -56,6 +56,7 @@ string UDPListener::listen() const
     }
 }
 
+
 int UDPListener::receiveSensor(sensorf &in_data) const
 {
     string packet = listen();
@@ -187,6 +188,14 @@ int UDPSender::sendPlaneState(const PlaneState &p) const
     sprintf(buf, "%f\t%f\t%f\t%f\n", \
             p.orientation.x, p.orientation.y, \
             p.orientation.z, p.orientation.w);
+    string packet(buf);
+    return send(packet);
+}
+
+int UDPSender::sendTwoVectors(const Vector3d &a, const Vector3d &b) const
+{
+    char buf[256];
+    sprintf(buf, "%f\t%f\t%f\t%f\t%f\t%f", a.x, a.y, a.z, b.x, b.y, b.z);
     string packet(buf);
     return send(packet);
 }

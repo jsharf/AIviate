@@ -1,4 +1,5 @@
 #include "Sensor.h"
+#include "Comm.h"
 
 #define K_comp (0.9)
 #define GyroFullRange (250) //Degrees per second
@@ -39,8 +40,8 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     // Kalman filter constants
     // Create kalman filters to clean noisy sensor data
     //    static KalmanFilter filterXY(k_accel, k_gyro, k_r);
-    static Vector3d oldUp = Vector3d::k;
-    static Vector3d oldFront = Vector3d::i;
+    static Vector3d oldDown = Vector3d::k*-1.0;
+    static Vector3d oldNorth = Vector3d::i;
     
     Vector3d gravity_vector(data.ax, data.ay, data.az);
     Vector3d gyro_vector(data.gx, data.gy, data.gz);
@@ -58,8 +59,8 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     Vector3d mag_perp = mag_vector - mag_proj;
     Vector3d umag_perp = mag_perp.unit();
 
-    Vector3d up_now = Vector3d::k + ugrav;
-    Vector3d front_now = Vector3d::i - umag_perp;
+    Vector3d down_now = ugrav;
+    Vector3d north_now = umag_perp;
     //Vector3d w = (u.cross(v)).unit();
 
     // orientation quaternion
@@ -69,25 +70,28 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     
     Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
     //Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
-    Vector3d up  = (oldUp.rotate(IGyroQuat))*(K_comp) + up_now*(1-K_comp);
-    oldUp = up;
+    Vector3d down = (oldDown.rotate(IGyroQuat))*(K_comp) + down_now*(1-K_comp);
+    oldDown = down;
 
-    Vector3d front = (oldFront.rotate(IGyroQuat))*(K_comp) + front_now*(1-K_comp);
-    oldFront = front;
+    Vector3d north = (oldNorth.rotate(IGyroQuat))*(K_comp) + north_now*(1-K_comp);
+    oldNorth = north;
+
+    static UDPSender diag("192.168.1.110", "6011"); 
+    diag.sendTwoVectors(down, mag_vector);
 
     // implement triad method to determine attitude rotation matrix
     // then determine quaternion from attitude rotation matrix
     // then set p.orientation equal to the attitude quaternion
     // http://en.wikipedia.org/wiki/Triad_method
     
-    // upwards is Vector3d::k from world's reference
-    Vector3d S = Vector3d::k;
+    // downwards is Vector3d::k from world's reference
+    Vector3d S = Vector3d::k*-1.0;
 
-    // upwards from airplane's reference
-    Vector3d s = up.unit();
+    // downwards from airplane's reference
+    Vector3d s = down.unit()*-1.0;
 
-    Vector3d M = Vector3d::k.cross(Vector3d::i).unit();
-    Vector3d m = up.cross(front).unit();
+    Vector3d M = (Vector3d::k*-1.0).cross(Vector3d::i).unit();
+    Vector3d m = (down*-1.0).cross(north).unit();
 
     Vector3d SxM = S.cross(M);
     Vector3d sxm = s.cross(m);

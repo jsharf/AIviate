@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ostream>
+#include <stdint.h>
 #include "../Vector/Vector.h"
 #include "../Filters/Filters.h"
 #include <ctime>

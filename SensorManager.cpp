@@ -37,13 +37,13 @@ uint64_t get_time_in_us()
     return time_in_micros;
 }
 
-void waitns(long ns)
+void waitus(long us)
 {
 	// wait 5 milliseconds
 	struct timespec delay = { 0,0};
 	delay.tv_sec = 0;
 	// 5 milliseconds = 5 nanoseconds * 10^6 nanoseconds/millisecond.
-	delay.tv_nsec = (2 + (3<<OSS)) * (1000000);
+	delay.tv_nsec = us*1000;
 	nanosleep(&delay, NULL);
 }
 
@@ -69,13 +69,18 @@ int main(int argc, char *argv[])
     PlaneState state;
     // Setup currAltitude singleton for altitude measurement
     currAltitude.isValid = 0;
+    // IMPORTANT: I think I just figured out the pthread bug and don't have
+    // time to fix it, but don't want to forget it so I'm leaving this here:
+    // checking altitude data requires special timing, and this causes
+    // pthread to context switch, perhaps screwing up timing of I2C comms
+    // consider adding pthread critical section, however that's done
     // create a separate thread to measure altitude
     pthread_t altitudeThread;
-    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    /*if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
-    }
+    }*/
 
     uint64_t last_time = get_time_in_us();
     while (true)
@@ -99,7 +104,7 @@ int main(int argc, char *argv[])
         sensor_to_float(out_data, float_data);
         //snd.sendSensor(out_data);
         // Filter sensor and convert data to quaternion state
-	sensorf_to_planestate(float_data, state, dt);
+        sensorf_to_planestate(float_data, state, dt);
         // Send filtered quaternion data to control code
         snd.sendPlaneState(state);
         last_time = get_time_in_us();
