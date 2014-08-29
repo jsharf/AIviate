@@ -2,7 +2,7 @@
 #include "Comm/Control.h"
 #include "Vector/Vector.h"
 #include "Comm/Comm.h"
-#include "Comm/Sensor.h"
+#include "Sensor/Sensor.h"
 #include "Filters/Filters.h"
 #include "PIDControl/PIDControl.h"
 #include <limits>

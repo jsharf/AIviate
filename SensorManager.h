@@ -6,7 +6,7 @@
 #include <ctime>
 #include <sys/time.h>
 #include "LinuxI2C/linux_i2c.h"
-#include "Comm/Sensor.h"
+#include "Sensor/Sensor.h"
 #include "Comm/Comm.h"
 #include "Vector/Vector.h"
 #include "Filters/Filters.h"

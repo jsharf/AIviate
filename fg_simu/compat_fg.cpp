@@ -1,7 +1,7 @@
 #include "../Vector/Vector.h"
 #include "../Comm/Comm.h"
 #include "../Comm/Control.h"
-#include "../Comm/Sensor.h"
+#include "../Sensor/Sensor.h"
 #include <iostream>
 #include <iomanip>
 
