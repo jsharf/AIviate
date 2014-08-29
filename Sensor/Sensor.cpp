@@ -1,5 +1,5 @@
 #include "Sensor.h"
-#include "Comm.h"
+#include "../Comm/Comm.h"
 
 #define K_comp (0.9)
 #define GyroFullRange (250) //Degrees per second

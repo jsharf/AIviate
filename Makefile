@@ -13,7 +13,7 @@ terminate:
 	pkill ai-sensor && pkill ai-control && pkill ai-actuator
 
 clean:
-	rm -f ai-control ai-sensor ai-actuator *.o fg_simu/compat_fg
+	rm -f ai-control ai-sensor ai-actuator *.o Comm/*.o Filters/*.o PIDControl/*.o vector/*.o fg_simu/compat_fg
 
 ####################
 #                  #
@@ -39,16 +39,16 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Comm/Sensor.o Comm/Comm.o Filters/Filters.o \
+ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor/Sensor.o Comm/Comm.o Filters/Filters.o \
            Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
-	./LinuxI2C/linux_i2c.o Comm/Sensor.o Comm/Comm.o Filters/Filters.o Vector/Vector3d.o \
+	./LinuxI2C/linux_i2c.o Sensor/Sensor.o Comm/Comm.o Filters/Filters.o Vector/Vector3d.o \
 	Vector/Quaternion.o -pthread
 
-ai-control: ControlManager.o Comm/Control.o  Comm/Comm.o Comm/Sensor.o Filters/Filters.o\
+ai-control: ControlManager.o Comm/Control.o  Comm/Comm.o Sensor/Sensor.o Filters/Filters.o\
 PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-control Comm/Control.o Comm/Comm.o \
-    Comm/Sensor.o  ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
+    Sensor/Sensor.o  ControlManager.o Filters/Filters.o PIDControl/PIDControl.o Vector/Vector3d.o Vector/Vector2d.o Vector/Quaternion.o 
 
 ai-actuator: actuator.o ./Servo/Servo.o Comm/Comm.o ./LinuxI2C/linux_i2c.o \
              Comm/Control.o Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
@@ -58,8 +58,8 @@ ai-actuator: actuator.o ./Servo/Servo.o Comm/Comm.o ./LinuxI2C/linux_i2c.o \
 SensorManager.o: SensorManager.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -pthread -o SensorManager.o SensorManager.cpp
 
-Comm/Sensor.o: Comm/Sensor.cpp
-	g++ $(FLAGS) $(DEBUG) -c -o Comm/Sensor.o Comm/Sensor.cpp
+Sensor/Sensor.o: Sensor/Sensor.cpp
+	g++ $(FLAGS) $(DEBUG) -c -o Sensor/Sensor.o Sensor/Sensor.cpp
 
 Comm/Comm.o: Comm/Comm.cpp
 	g++ $(FLAGS) $(DEBUG) -c -o Comm/Comm.o Comm/Comm.cpp
@@ -95,7 +95,7 @@ Vector/Quaternion.o: Vector/Quaternion.cpp
 Vector/Vector2d.o: Vector/Vector2d.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Vector/Vector2d.o ./Vector/Vector2d.cpp
 
-compat_fg: Comm/Comm.o Comm/Sensor.o Vector/Vector3d.o Vector/Quaternion.o
+compat_fg: Comm/Comm.o Sensor/Sensor.o Vector/Vector3d.o Vector/Quaternion.o
 	g++ fg_simu/compat_fg.cpp -o fg_simu/compat_fg \
     $(FLAGS) $(DEBUG) -I $(INCLUDES) Comm/Comm.o \
-    Comm/Sensor.o Vector/Vector3d.o Vector/Quaternion.o 
+    Sensor/Sensor.o Vector/Vector3d.o Vector/Quaternion.o 
