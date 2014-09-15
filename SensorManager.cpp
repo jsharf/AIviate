@@ -1,8 +1,10 @@
 #include "SensorManager.h"
 
+#include <string>
+
 void usage()
 {
-    cerr << "sensor <out_addr> <out_port>" << endl;
+    cerr << "sensor [-d <debug_addr> <debug_port>] <out_addr> <out_port>" << endl;
 }
 
 // The current altitude
@@ -28,6 +30,9 @@ int mb;
 int mc;
 int md;
 long b5;
+
+// Diagnostic global UDPSender
+UDPSender diag;
     
 uint64_t get_time_in_us()
 {
@@ -49,11 +54,22 @@ void waitus(long us)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc != 3 && argc != 6)
     {
         cerr << "Wrong number of arguments" << endl;
         usage();
         return 1;
+    }
+    if (argc == 6 && string(argv[1]) != "-d")
+    {
+        cerr << "Arguments incorrect" << endl;
+        usage();
+        return 1;
+    }
+    else if (argc == 6)
+    {
+        // okay, let's instantiate debug mode
+        diag = UDPSender(argv[2], argv[3]);
     }
     int sensor_config_ret = sensor_config_gy80(NULL);
     if(sensor_config_ret != 0xF)
@@ -61,7 +77,16 @@ int main(int argc, char *argv[])
         cerr << "GY80 module failed initialization with code " << sensor_config_ret << endl;
     }
     // UDP sender object
-    UDPSender snd(argv[1], argv[2]);
+    UDPSender snd;
+    if (argc == 3)
+    {
+        snd = UDPSender(argv[1], argv[2]);
+    }
+    else
+    {
+        snd = UDPSender(argv[4], argv[5]);
+    }
+    
     // default sensor structs
     sensor out_data;
     sensorf float_data;
