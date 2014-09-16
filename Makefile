@@ -1,7 +1,7 @@
 
 DEBUG=-Wall -pedantic -Wextra
 
-FLAGS=-std=c++0x
+FLAGS=-std=c++11
 
 INCLUDES=./,./LinuxI2C/,./Servo/,./PIDControl,./Filters,./Vector
 
@@ -13,7 +13,7 @@ terminate:
 	pkill ai-sensor && pkill ai-control && pkill ai-actuator
 
 clean:
-	rm -f ai-control ai-sensor ai-actuator *.o Comm/*.o Filters/*.o PIDControl/*.o vector/*.o fg_simu/compat_fg
+	rm -f ai-control ai-sensor ai-actuator *.o Sensor/*.o Comm/*.o Filters/*.o PIDControl/*.o vector/*.o fg_simu/compat_fg
 
 ####################
 #                  #
