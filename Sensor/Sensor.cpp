@@ -32,6 +32,9 @@ void sensor_to_float(const sensor &a, sensorf &f)
     f.altitude = (float) a.altitude;
 }
 
+/**
+ * https://ia600604.us.archive.org/20/items/nasa_techdoc_20010068636/20010068636.pdf
+ */
 void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
 {
     //    static float k_accel = 0.01, 
@@ -76,7 +79,7 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     Vector3d north = (oldNorth.rotate(IGyroQuat))*(K_comp) + north_now*(1-K_comp);
     oldNorth = north;
 
-    static UDPSender diag("192.168.1.110", "6011"); 
+    static UDPSender diag("192.168.0.3", "6008"); 
     diag.sendTwoVectors(down, mag_vector);
 
     // implement triad method to determine attitude rotation matrix
