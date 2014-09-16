@@ -5,6 +5,7 @@
 #define GyroFullRange (250) //Degrees per second
 #define GyroConversionFactor (TWO_PI/GyroFullRange)
 
+extern UDPSender diag;
 
 // Helps debugging with sensor structs
 std::ostream& operator<<(std::ostream &out, sensorf &rhs)
@@ -32,9 +33,6 @@ void sensor_to_float(const sensor &a, sensorf &f)
     f.altitude = (float) a.altitude;
 }
 
-/**
- * https://ia600604.us.archive.org/20/items/nasa_techdoc_20010068636/20010068636.pdf
- */
 void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
 {
     //    static float k_accel = 0.01, 
@@ -79,8 +77,7 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     Vector3d north = (oldNorth.rotate(IGyroQuat))*(K_comp) + north_now*(1-K_comp);
     oldNorth = north;
 
-    static UDPSender diag("192.168.0.3", "6008"); 
-    diag.sendTwoVectors(down, mag_vector);
+    diag.sendTwoVectors(down, north);
 
     // implement triad method to determine attitude rotation matrix
     // then determine quaternion from attitude rotation matrix

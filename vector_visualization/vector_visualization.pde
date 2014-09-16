@@ -17,7 +17,7 @@ void setup()
 {
   size(500, 500, P3D); 
   background(255);
-  listener = new UDP(this, 6011, null);
+  listener = new UDP(this, 6008, null);
   listener.listen(true);
   listener.log(true);
 }
