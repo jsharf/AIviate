@@ -5,8 +5,6 @@
 #define GyroFullRange (250) //Degrees per second
 #define GyroConversionFactor (TWO_PI/GyroFullRange)
 
-extern UDPSender diag;
-
 // Helps debugging with sensor structs
 std::ostream& operator<<(std::ostream &out, sensorf &rhs)
 {
@@ -35,6 +33,7 @@ void sensor_to_float(const sensor &a, sensorf &f)
 
 void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
 {
+
     //    static float k_accel = 0.01, 
     //                 k_gyro = 0.0003, 
     //                 k_r = 0.01; 
@@ -54,7 +53,7 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     // an orthonormal eigenbasis from the gravity and magnetic compass vectors
     // to force them to be orthogonal
     Vector3d ugrav = gravity_vector.unit();
-    Quaternion toGrav = Vector3d::i.quaternionTo(ugrav);
+    //Quaternion toGrav = Vector3d::i.quaternionTo(ugrav);
 
     Vector3d mag_proj = mag_vector.project(ugrav);
     Vector3d mag_perp = mag_vector - mag_proj;
@@ -71,13 +70,14 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     
     Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
     //Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
-    Vector3d down = (oldDown.rotate(IGyroQuat))*(K_comp) + down_now*(1-K_comp);
+    Vector3d down = (oldDown.rotate(IGyroQuat*-1.0))*(K_comp) + down_now*(1-K_comp);
     oldDown = down;
 
     Vector3d north = (oldNorth.rotate(IGyroQuat))*(K_comp) + north_now*(1-K_comp);
     oldNorth = north;
 
-    diag.sendTwoVectors(down, north);
+    static UDPSender diag("192.168.2.1", "6008");
+    diag.sendTwoVectors(down_now, north_now);
 
     // implement triad method to determine attitude rotation matrix
     // then determine quaternion from attitude rotation matrix

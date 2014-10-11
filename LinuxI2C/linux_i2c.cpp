@@ -1,5 +1,7 @@
 #include "linux_i2c.h"
 
+#include <sys/file.h>
+
 const char *fileName = I2C_FILENAME;
 
 I2CBus::I2CBus()
@@ -18,17 +20,17 @@ I2CBus::I2CBus()
 I2CBus::~I2CBus()
 {
     // wait for any pending transactions on the i2c bus to complete
-    pthread_mutex_lock(&mymutex);
+    lock();
     // close the i2c bus
     close(fd);
     // release the i2c bus mutex
-    pthread_mutex_unlock(&mymutex);
+    unlock();
 }
 
 int I2CBus::i2c_write(char i2c_addr, const char* buf, unsigned int len)
 {
     // acquire a lock on the i2c bus
-    pthread_mutex_lock(&mymutex);
+    lock();
     unsigned int ret_len = 0;
     if(i2c_setSlave(i2c_addr))
     {
@@ -38,29 +40,31 @@ int I2CBus::i2c_write(char i2c_addr, const char* buf, unsigned int len)
             std::cerr << "Error writing to I2C slave.\n";
         }
     }
-    pthread_mutex_unlock(&mymutex);
+    unlock();
     return ret_len;
 }
 
-int I2CBus::lock()
+void I2CBus::lock()
 {
+    while (flock(fd, LOCK_EX) != 0);
     pthread_mutex_lock(&mymutex);
 }
 
-int I2CBus::unlock()
+void I2CBus::unlock()
 {
     pthread_mutex_unlock(&mymutex);
+    while(flock(fd, LOCK_UN) != 0);
 }
 
 int I2CBus::i2c_read(char* buf, unsigned int len)
 {
-    pthread_mutex_lock(&mymutex);
+    lock();
     unsigned int ret_len = read(fd, buf, len);
     if(ret_len != len)
     {
         std::cerr << "Error reading from I2C slave.\n";
     }
-    pthread_mutex_unlock(&mymutex);
+    unlock();
     return ret_len;
 }
 
