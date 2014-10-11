@@ -33,7 +33,7 @@ UDPListener::UDPListener(string port, int debug) : mDebug(debug)
         cerr << "Listening on port " << portno << endl;
 }
 
-string UDPListener::listen() const
+result_t UDPListener::listen(string &ret) const
 {
     unsigned char buf[PACKETSIZE];
     socklen_t addrlen = sizeof(remaddr);
@@ -48,62 +48,63 @@ string UDPListener::listen() const
         string packet((char *)buf);
         if (mDebug)
             cerr << "Received Message:" << packet << endl;
-        return packet;
+        ret = packet;
+        return success;
     }
     else
     {
-        return "FAIL";
+        return fail;
     }
 }
 
 
-int UDPListener::receiveSensor(sensorf &in_data) const
+result_t  UDPListener::receiveSensor(sensorf &in_data) const
 {
-    string packet = listen();
-    if (packet != "FAIL")
+    string packet;
+    if (listen(packet) == fail)
+    {
+        return fail;
+    }
+    else 
     {
         sscanf(packet.c_str(), "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", \
         &(in_data.mx), &(in_data.my), &(in_data.mz), \
         &(in_data.gx), &(in_data.gy), &(in_data.gz), \
         &(in_data.ax), &(in_data.ay), &(in_data.az), \
         &(in_data.altitude));
-        return 0;
-    }
-    else
-    {
-        return -1;
+        return success;
     }
 }
 
-int UDPListener::receiveControl(control &ctrl) const
+result_t UDPListener::receiveControl(control &ctrl) const
 {
-    string packet = listen();
-    if (packet != "FAIL")
+    string packet;
+    if (listen(packet) == success)
     {
         sscanf(packet.c_str(), "%f\t%f\t%f\t%f\n", &(ctrl.ail), \
             &(ctrl.elev), &(ctrl.rudder), &(ctrl.throttle));
-        return 0;
+        return success;
     }
     else
     {
-        return -1;
+        return fail;
     }
 }
 
-int UDPListener::receivePlaneState(PlaneState &p) const
+result_t UDPListener::receivePlaneState(PlaneState &p) const
 {
-    string packet = listen();
-    if (packet != "FAIL")
+    string packet;
+    if (listen(packet) == success)
     {
         float x, y, z, w;
         sscanf(packet.c_str(), "%f\t%f\t%f\t%f\n", \
                &x, &y, &z, &w);
         p.orientation = Quaternion(x, y, z, w);
-        return 0;
+        return success;
     }
     else
     {
-        return -1;
+        return fail;
     }
 }
 
@@ -141,17 +142,17 @@ UDPSender::UDPSender(string url, string port, int debug) : mDebug(debug)
 
 }
 
-int UDPSender::send(const string msg) const
+result_t UDPSender::send(const string msg) const
 {
     if (sendto(out_sockfd, msg.c_str(), msg.size(), 0, 
             (struct sockaddr *)&out_addr, sizeof(out_addr)) < 0) {
         perror("sendto failed");
-        return -1;
+        return fail;
     }
-    return 1;
+    return success;
 }
 
-int UDPSender::sendSensor(const sensor &data) const
+result_t UDPSender::sendSensor(const sensor &data) const
 {
     char str[256];
     float roll = (float) data.mx;
@@ -173,7 +174,7 @@ int UDPSender::sendSensor(const sensor &data) const
     return send(packet);
 }
 
-int UDPSender::sendControl(const control &ctrl) const
+result_t UDPSender::sendControl(const control &ctrl) const
 {
     char send_data[256];
     sprintf(send_data, "%f\t%f\t%f\t%f\n", ctrl.ail, ctrl.elev, ctrl.rudder,
@@ -182,7 +183,7 @@ int UDPSender::sendControl(const control &ctrl) const
     return send(packet);
 }
 
-int UDPSender::sendPlaneState(const PlaneState &p) const
+result_t UDPSender::sendPlaneState(const PlaneState &p) const
 {
     char buf[256];
     sprintf(buf, "%f\t%f\t%f\t%f\n", \
@@ -192,7 +193,7 @@ int UDPSender::sendPlaneState(const PlaneState &p) const
     return send(packet);
 }
 
-int UDPSender::sendTwoVectors(const Vector3d &a, const Vector3d &b) const
+result_t UDPSender::sendTwoVectors(const Vector3d &a, const Vector3d &b) const
 {
     char buf[256];
     sprintf(buf, "%f\t%f\t%f\t%f\t%f\t%f", a.x, a.y, a.z, b.x, b.y, b.z);

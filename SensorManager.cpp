@@ -4,7 +4,7 @@
 
 void usage()
 {
-    cerr << "sensor [-d <debug_addr> <debug_port>] <out_addr> <out_port>" << endl;
+    cerr << "sensor <out_addr> <out_port>" << endl;
 }
 
 // The current altitude
@@ -30,9 +30,6 @@ int mb;
 int mc;
 int md;
 long b5;
-
-// Diagnostic global UDPSender
-UDPSender diag;
     
 uint64_t get_time_in_us()
 {
@@ -54,38 +51,20 @@ void waitus(long us)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3 && argc != 6)
+    if (argc != 3)
     {
         cerr << "Wrong number of arguments" << endl;
         usage();
         return 1;
-    }
-    if (argc == 6 && string(argv[1]) != "-d")
-    {
-        cerr << "Arguments incorrect" << endl;
-        usage();
-        return 1;
-    }
-    else if (argc == 6)
-    {
-        // okay, let's instantiate debug mode
-        diag = UDPSender(argv[2], argv[3]);
     }
     int sensor_config_ret = sensor_config_gy80(NULL);
     if(sensor_config_ret != 0xF)
     {
         cerr << "GY80 module failed initialization with code " << sensor_config_ret << endl;
     }
+
     // UDP sender object
-    UDPSender snd;
-    if (argc == 3)
-    {
-        snd = UDPSender(argv[1], argv[2]);
-    }
-    else
-    {
-        snd = UDPSender(argv[4], argv[5]);
-    }
+    UDPSender snd(argv[1], argv[2]);
     
     // default sensor structs
     sensor out_data;
@@ -101,11 +80,11 @@ int main(int argc, char *argv[])
     // consider adding pthread critical section, however that's done
     // create a separate thread to measure altitude
     pthread_t altitudeThread;
-    /*if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     {
         cerr << "Could not initiate pthread for reading altitude values" << \
         endl;
-    }*/
+    }
 
     uint64_t last_time = get_time_in_us();
     while (true)
@@ -465,6 +444,7 @@ float calcAltitude(float pressure)
 
 void* sensor_read_barometer(void *ignore)
 {
+    (void)(ignore);
     //int nSteps;
     while (true)
     {
@@ -573,6 +553,7 @@ int sensor_config_barometer(void)
 
 int sensor_config_gy80(struct config *c)
 {
+    (void)(c);
     // return value is a 4-bit number: AGCB, indicating
     // the return values of accel, gyro, compass, and barometer
     int ret = sensor_config_accelerometer();

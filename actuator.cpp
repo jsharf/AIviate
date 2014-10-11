@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     while (true)
     {
-        if(lst.receiveControl(in_command) == -1)
+        if(lst.receiveControl(in_command) == fail)
         {
             continue;
         }

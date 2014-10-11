@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
     // like this behavior
     while (true)
     {
-        string a = lst.listen();
-        if (a != "FAIL")
+        string a;
+        if (lst.listen(a) == success)
         {
             // Listen for sensor data
             // and simulate the filtering algorithms on it
