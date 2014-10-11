@@ -1,5 +1,5 @@
 
-DEBUG=-Wall -pedantic -Wextra
+DEBUG=-Wall -Werror -pedantic -Wextra
 
 FLAGS=-std=c++11
 
@@ -21,13 +21,13 @@ clean:
 #                  #
 ####################
 
-sensor_test: sensor_test.o SensorManager.o linux_i2c.o
+sensor_test: sensor_test.o SensorManager.o LinuxI2C/linux_i2c.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o sensor_test ./Test/sensor_test.o SensorManager.o ./LinuxI2C/linux_i2c.o
 
 sensor_test.o: ./Test/SensorTest.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./Test/sensor_test.o ./Test/SensorTest.cpp
 
-servo_test: servo_test.o Servo.o linux_i2c.o
+servo_test: servo_test.o Servo.o LinuxI2C/linux_i2c.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o servo_test ./Test/servo_test.o ./Servo/Servo.o ./LinuxI2C/linux_i2c.o
 
 servo_test.o: ./Test/ServoTest.cpp
@@ -39,7 +39,7 @@ servo_test.o: ./Test/ServoTest.cpp
 #                  #
 ####################
 
-ai-sensor: SensorManager.o ./LinuxI2C/linux_i2c.o Sensor/Sensor.o Comm/Comm.o Filters/Filters.o \
+ai-sensor: SensorManager.o LinuxI2C/linux_i2c.o Sensor/Sensor.o Comm/Comm.o Filters/Filters.o \
            Vector/Vector3d.o Vector/Quaternion.o Vector/Vector2d.o
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -o ai-sensor SensorManager.o \
 	./LinuxI2C/linux_i2c.o Sensor/Sensor.o Comm/Comm.o Filters/Filters.o Vector/Vector3d.o \
@@ -73,7 +73,7 @@ ControlManager.o: ControlManager.cpp
 actuator.o: actuator.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o actuator.o actuator.cpp
 
-linux_i2c.o: ./LinuxI2C/linux_i2c.cpp
+LinuxI2C/linux_i2c.o: ./LinuxI2C/linux_i2c.cpp
 	g++ $(FLAGS) $(DEBUG) -I $(INCLUDES) -c -o ./LinuxI2C/linux_i2c.o ./LinuxI2C/linux_i2c.cpp
 
 Servo.o: ./Servo/Servo.cpp
