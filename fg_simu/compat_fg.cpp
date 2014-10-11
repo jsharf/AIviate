@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     Vector3d rotate(const Vector3d& axis, fp_type theta) const;// Rotate the vector around the axis axis by the angle theta (+theta is CCW if vector points towards observer)
 */
     Vector3d axis;
-    fptype angle = 0;
+    //fptype angle = 0;
     while (true)
     {
         lst.receiveSensor(s);
