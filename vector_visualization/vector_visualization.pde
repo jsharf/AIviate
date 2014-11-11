@@ -27,10 +27,10 @@ void draw()
   background(255);
   pushMatrix();
   translate(250, 250, 250);
-  rotateZ(step1/50 + stepy/50);
-  rotateX(step2/50 + stepx/50);
-  rotateY(step3);
-  step3 += 0.01;
+  rotateZ(step3/50);
+  rotateY(-(step2/50 + stepx/50));
+  rotateX(step1/50 + stepy/50);
+  step3 += 0.00;
   translate(-250, -250, -250);
   line(250, 250, 250, 250, 220, 250);
   line(250, 250, 250, 270, 250, 250);
