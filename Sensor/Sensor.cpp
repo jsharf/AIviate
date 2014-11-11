@@ -40,6 +40,9 @@ void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
     // Kalman filter constants
     // Create kalman filters to clean noisy sensor data
     //    static KalmanFilter filterXY(k_accel, k_gyro, k_r);
+    // TODO: set initial values of oldDown and oldNorth based on accelerometer
+    // readings instead of assumign the airplane starts out in a good
+    // orientation
     static Vector3d oldDown = Vector3d::k*-1.0;
     static Vector3d oldNorth = Vector3d::i;
     
