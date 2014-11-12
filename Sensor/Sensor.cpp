@@ -33,99 +33,97 @@ void sensor_to_float(const sensor &a, sensorf &f)
 
 void sensorf_to_planestate(const sensorf &data, PlaneState &p, float dt)
 {
-
-    //    static float k_accel = 0.01, 
-    //                 k_gyro = 0.0003, 
-    //                 k_r = 0.01; 
-    // Kalman filter constants
-    // Create kalman filters to clean noisy sensor data
-    //    static KalmanFilter filterXY(k_accel, k_gyro, k_r);
-    // TODO: set initial values of oldDown and oldNorth based on accelerometer
-    // readings instead of assumign the airplane starts out in a good
-    // orientation
-    static Vector3d oldDown = Vector3d::k*-1.0;
-    static Vector3d oldNorth = Vector3d::i;
-    
     Vector3d gravity_vector(data.ax, data.ay, data.az);
     Vector3d gyro_vector(data.gx, data.gy, data.gz);
     Vector3d mag_vector(data.mx, data.my, data.mz);
 
-    // orthonormal eigenbasis (u,v,w) using accelerometer and magnetic compass.
-    // gravity and magnetic compass should normally be orthonormal, but the 
-    // chips aren't perfectly aligned and the sensors have error. So we build
-    // an orthonormal eigenbasis from the gravity and magnetic compass vectors
-    // to force them to be orthogonal
-    Vector3d ugrav = gravity_vector.unit();
-    //Quaternion toGrav = Vector3d::i.quaternionTo(ugrav);
+    static Quaternion q, qDot;
+    static float norm, 
+                 Beta = 3.0, 
+                 target_Beta = 0.015,
+                 SamplePeriod = 0.01;
 
-    Vector3d mag_proj = mag_vector.project(ugrav);
-    Vector3d mag_perp = mag_vector - mag_proj;
-    Vector3d umag_perp = mag_perp.unit();
+    // Auxiliary variables to avoid repeated arithmetic
+    float _2q2mx;
+    float hx, hy;
 
-    Vector3d down_now = ugrav;
-    Vector3d north_now = umag_perp;
-    //Vector3d w = (u.cross(v)).unit();
+    Vector3d _2q1m, _2b, _4b, _8b;
+    Quaternion _2q, q1, q2, q3, q4, s;
 
-    // orientation quaternion
-    // Quaternion orientation = w.quaternionTo(Vector3d::k);
+    // normalize magnetometer
+    mag_vector = mag_vector.unit();
 
-    double ITheta = gyro_vector.magnitude() * dt;
-    
-    Quaternion IGyroQuat = gyro_vector.rotationAroundAxis(ITheta);
-    //Quaternion AccOrientation = Vector3d::i.quaternionTo(gravity_vector);
-    Vector3d down = (oldDown.rotate(IGyroQuat*-1.0))*(K_comp) + down_now*(1-K_comp);
-    oldDown = down;
+    gyro_vector *= 0.00875; // convert to dps
 
-    Vector3d north = (oldNorth.rotate(IGyroQuat))*(K_comp) + north_now*(1-K_comp);
-    oldNorth = north;
+    gyro_vector *= 180.0/PI; // convert to radians/sec
 
-    static UDPSender diag("192.168.2.1", "6008");
-    diag.sendTwoVectors(down_now, north_now);
+        //invert accelometer, so positive is down
+        gravity_vector *= -1;
 
-    // implement triad method to determine attitude rotation matrix
-    // then determine quaternion from attitude rotation matrix
-    // then set p.orientation equal to the attitude quaternion
-    // http://en.wikipedia.org/wiki/Triad_method
-    
-    // downwards is Vector3d::k from world's reference
-    Vector3d S = Vector3d::k*-1.0;
+    // Auxiliary variables to avoid repeated arithmetic
+    _2q1m.x = 2.0f * q.x * mag_vector.x;
+    _2q1m.y = 2.0f * q.x * mag_vector.y;
+    _2q1m.z = 2.0f * q.x * mag_vector.z;
+    _2q2mx = 2.0f * q.y * mag_vector.x;
 
-    // downwards from airplane's reference
-    Vector3d s = down.unit()*-1.0;
+    _2q.x = 2.0f * q.x;
+    _2q.y = 2.0f * q.y;
+    _2q.z = 2.0f * q.z;
+    _2q.w = 2.0f * q.w;
 
-    Vector3d M = (Vector3d::k*-1.0).cross(Vector3d::i).unit();
-    Vector3d m = (down*-1.0).cross(north).unit();
+    q1.x = q.x * q.x;
+    q1.y = q.x * q.y;
+    q1.z = q.x * q.z;
+    q1.w = q.x * q.w;
+    q2.y = q.y * q.y;
+    q2.z = q.y * q.z;
+    q2.w = q.y * q.w;
+    q3.z = q.z * q.z;
+    q3.w = q.z * q.w;
+    q4.w = q.w * q.w;
 
-    Vector3d SxM = S.cross(M);
-    Vector3d sxm = s.cross(m);
+    // Normalise accelerometer measurement (what if all zero? whatever!)
+    gravity_vector = gravity_vector.unit();
 
-    // the following is going to get really dicey. sorry
-    // formulate the 3 rows of the matrix A which
-    // is the transformation between airplane coordinates
-    // and world coordinates.  
+    // Reference direction of Earth's magnetic field
+    _2q1m.x = 2.0f * q.x * mag_vector.x;
+    _2q1m.y = 2.0f * q.x * mag_vector.y;
+    _2q1m.z = 2.0f * q.x * mag_vector.z;
+    _2q2mx = 2.0f * q.y * mag_vector.x;
+    hx = mag_vector.x * q1.x - _2q1m.y * q.w + _2q1m.z * q.z + mag_vector.x * q2.y + _2q.y * mag_vector.y * q.z + _2q.y * mag_vector.z * q.w - mag_vector.x * q3.z - mag_vector.x * q4.w;
+    hy = _2q1m.x * q.z + mag_vector.y * q1.x - _2q1m.z * q.y + _2q2mx * q.z - mag_vector.y * q2.y + mag_vector.y * q3.z + _2q.z * mag_vector.z * q.w - mag_vector.y * q4.w;
+    _2b.x = (float)sqrt(hx * hx + hy * hy);
+    _2b.z = -_2q1m.x * q.z + _2q1m.y * q.y + mag_vector.z * q1.x + _2q2mx * q.w - mag_vector.z * q2.y + _2q.z * mag_vector.y * q.w - mag_vector.z * q3.z + mag_vector.z * q4.w;
+    _4b.x = 2.0f * _2b.x;
+    _4b.z = 2.0f * _2b.z;
+    _8b.x = 2.0f * _4b.x;
+    _8b.z = 2.0f * _4b.z;
 
-    std::vector <Vector3d> A(3);
-    A[0].x = S.x*s.x + M.x*m.x + SxM.x*sxm.x;
-    A[0].y = S.x*s.y + M.x*m.y + SxM.x*sxm.y;    
-    A[0].z = S.x*s.z + M.x*m.z + SxM.x*sxm.z;    
+    // Gradient decent algorithm corrective step
+    s.x= -_2q.z*(2*(q2.w - q1.z) - gravity_vector.x)    +   _2q.y*(2*(q1.y + q3.w) - gravity_vector.y)   +  -_4b.z*q.z*(_4b.x*(0.5 - q3.z - q4.w) + _4b.z*(q2.w - q1.z) - mag_vector.x)   +   (-_4b.x*q.w+_4b.z*q.y)*(_4b.x*(q2.z - q1.w) + _4b.z*(q1.y + q3.w) - mag_vector.y)    +   _4b.x*q.z*(_4b.x*(q1.z + q2.w) + _4b.z*(0.5 - q2.y - q3.z) - mag_vector.z);
+    s.y= _2q.w*(2*(q2.w - q1.z) - gravity_vector.x) +   _2q.x*(2*(q1.y + q3.w) - gravity_vector.y) +   -4*q.y*(2*(0.5 - q2.y - q3.z) - gravity_vector.z)    +   _4b.z*q.w*(_4b.x*(0.5 - q3.z - q4.w) + _4b.z*(q2.w - q1.z) - mag_vector.x)   + (_4b.x*q.z+_4b.z*q.x)*(_4b.x*(q2.z - q1.w) + _4b.z*(q1.y + q3.w) - mag_vector.y)   +   (_4b.x*q.w-_8b.z*q.y)*(_4b.x*(q1.z + q2.w) + _4b.z*(0.5 - q2.y - q3.z) - mag_vector.z);             
+    s.z= -_2q.x*(2*(q2.w - q1.z) - gravity_vector.x)    +     _2q.w*(2*(q1.y + q3.w) - gravity_vector.y)   +   (-4*q.z)*(2*(0.5 - q2.y - q3.z) - gravity_vector.z) +   (-_8b.x*q.z-_4b.z*q.x)*(_4b.x*(0.5 - q3.z - q4.w) + _4b.z*(q2.w - q1.z) - mag_vector.x)+(_4b.x*q.y+_4b.z*q.w)*(_4b.x*(q2.z - q1.w) + _4b.z*(q1.y + q3.w) - mag_vector.y)+(_4b.x*q.x-_8b.z*q.z)*(_4b.x*(q1.z + q2.w) + _4b.z*(0.5 - q2.y - q3.z) - mag_vector.z);
+    s.w= _2q.y*(2*(q2.w - q1.z) - gravity_vector.x) +   _2q.z*(2*(q1.y + q3.w) - gravity_vector.y)+(-_8b.x*q.w+_4b.z*q.y)*(_4b.x*(0.5 - q3.z - q4.w) + _4b.z*(q2.w - q1.z) - mag_vector.x)+(-_4b.x*q.x+_4b.z*q.z)*(_4b.x*(q2.z - q1.w) + _4b.z*(q1.y + q3.w) - mag_vector.y)+(_4b.x*q.y)*(_4b.x*(q1.z + q2.w) + _4b.z*(0.5 - q2.y - q3.z) - mag_vector.z);
 
-    A[1].x = S.y*s.x + M.y*m.x + SxM.y*sxm.x;
-    A[1].y = S.y*s.y + M.y*m.y + SxM.y*sxm.y;    
-    A[1].z = S.y*s.z + M.y*m.z + SxM.y*sxm.z;    
-    
-    A[2].x = S.z*s.x + M.z*m.x + SxM.z*sxm.x;
-    A[2].y = S.z*s.y + M.z*m.y + SxM.z*sxm.y;    
-    A[2].z = S.z*s.z + M.z*m.z + SxM.z*sxm.z;    
 
-    // now convert the rotation matrix A into a quaternion
-    // http://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Rotation_matrix_.E2.86.94_quaternion
-    Quaternion q;
-    q.w = 0.5*sqrt(1 + A[0].x + A[1].y + A[2].z);
-    double k = 0.25*(1/q.w);
-    q.x = k*(A[2].y - A[1].z);
-    q.y = k*(A[0].z - A[2].x);
-    q.z = k*(A[1].x - A[0].y);
-    
-    p.orientation = q;
-    //p.orientation = toGrav;
+    s = s.unit();
+
+    // Compute rate of change of quaternion
+    qDot.x = 0.5 * (-q.y * gyro_vector.x - q.z * gyro_vector.y - q.w * gyro_vector.z) - Beta * s.x;
+    qDot.y = 0.5 * (q.x * gyro_vector.x + q.z * gyro_vector.z - q.w * gyro_vector.y) - Beta * s.y;
+    qDot.z = 0.5 * (q.x * gyro_vector.y - q.y * gyro_vector.z + q.w * gyro_vector.x) - Beta * s.z;
+    qDot.w = 0.5 * (q.x * gyro_vector.z + q.y * gyro_vector.y - q.z * gyro_vector.x) - Beta * s.w;
+
+    if(Beta>target_Beta) Beta -= 0.01;
+
+    // Integrate to yield quaternion
+    q.x += qDot.x * SamplePeriod;
+    q.y += qDot.y * SamplePeriod;
+    q.z += qDot.z * SamplePeriod;
+    q.w += qDot.w * SamplePeriod;
+
+    q = q.unit();
+
+    // q is resulting orientation quaternion
+    p.orientation = q;    
 }

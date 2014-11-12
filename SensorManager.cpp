@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
         // Get sensor data from I2C
         sensor_read_accelerometer(&out_data);
         
-	sensor_read_gyro(&out_data);
+        sensor_read_gyro(&out_data);
 
         sensor_read_compass(&out_data);
 
