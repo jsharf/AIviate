@@ -72,7 +72,14 @@ Currently the control algorithm is mainly PID.
 Debugging
 ---------
 
-The UDP interface between the control program, the sensor manager, and the actuator manager mimics the UDP protocol used by Flight Gear for interfacing with external programs. This allows a simple HITL testing configuration. A powerful computer runs the Flight Gear simulator and configures the program to send simulated sensor data to the control loop running on the Raspberry Pi. The control program on the Raspberry Pi generates a set of response commands and sends them over UDP to the simulator.
+The UDP interface between the control program, the sensor manager, and the
+actuator manager mimics the UDP protocol used by Flight Gear for interfacing
+with external programs. This allows a simple Hardware In The Loop (HITL) testing
+configuration. A powerful computer runs the Flight Gear simulator and configures
+the program to send simulated sensor data to the control loop running on the
+Raspberry Pi. The control program on the Raspberry Pi generates a set of
+response commands and sends them over UDP to the simulator.
 
-Since we can put programs in between Flightgear and the control loop, we can simulate
-failures to see how the plane recovers from faulty sensors and faulty actuators. 
+Since we can put programs in between Flightgear and the control loop, we can
+simulate failures to see how the plane recovers from faulty sensors and faulty
+actuators. 
