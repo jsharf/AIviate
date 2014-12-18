@@ -80,11 +80,11 @@ int main(int argc, char *argv[])
     // consider adding pthread critical section, however that's done
     // create a separate thread to measure altitude
     pthread_t altitudeThread;
-    if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
-    {
-        cerr << "Could not initiate pthread for reading altitude values" << \
-        endl;
-    }
+    //if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
+    //{
+    //    cerr << "Could not initiate pthread for reading altitude values" << \
+    //    endl;
+    //}
 
     uint64_t last_time = get_time_in_us();
     while (true)
