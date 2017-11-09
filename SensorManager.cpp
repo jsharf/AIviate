@@ -1,6 +1,8 @@
 #include "SensorManager.h"
 
 #include <string>
+#include <cstdint>
+#include <chrono>
 
 void usage()
 {
@@ -68,9 +70,9 @@ int main(int argc, char *argv[])
     
     // default sensor structs
     sensor out_data;
-    sensorf float_data;
+    //sensorf float_data;
     // Plane State variable
-    PlaneState state;
+    //PlaneState state;
     // Setup currAltitude singleton for altitude measurement
     currAltitude.isValid = 0;
     // IMPORTANT: I think I just figured out the pthread bug and don't have
@@ -79,7 +81,7 @@ int main(int argc, char *argv[])
     // pthread to context switch, perhaps screwing up timing of I2C comms
     // consider adding pthread critical section, however that's done
     // create a separate thread to measure altitude
-    pthread_t altitudeThread;
+    // pthread_t altitudeThread;
     //if (pthread_create(&altitudeThread, NULL, sensor_read_barometer, NULL) != 0)
     //{
     //    cerr << "Could not initiate pthread for reading altitude values" << \
@@ -87,8 +89,8 @@ int main(int argc, char *argv[])
     //}
 
     uint64_t last_time = get_time_in_us();
-    while (true)
-    {
+    std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+    while (true) {
 	// time difference in seconds with microsecond precision
         float dt = ((float)(get_time_in_us() - last_time))/1000000.0f;
         // Get sensor data from I2C
@@ -102,15 +104,17 @@ int main(int argc, char *argv[])
         {
             out_data.altitude = currAltitude.altitude;
         }
-        else
-            out_data.altitude = NAN;
+        else {
+	    // this is a weird hack. don't ask.
+            out_data.altitude = ((double) std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count())/1000.0;
+	}
         // Convert sensor data to floating point
-        sensor_to_float(out_data, float_data);
+        //sensor_to_float(out_data, float_data);
         //snd.sendSensor(out_data);
         // Filter sensor and convert data to quaternion state
-        sensorf_to_planestate(float_data, state, dt);
+        //sensorf_to_planestate(float_data, state, dt);
         // Send filtered quaternion data to control code
-        snd.sendPlaneState(state);
+        snd.sendSensor(out_data);
         last_time = get_time_in_us();
     }
 }

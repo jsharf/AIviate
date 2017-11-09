@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <iostream>
 
-#define I2C_FILENAME "/dev/i2c-0"
+#define I2C_FILENAME "/dev/i2c-1"
 
 class I2CBus
 {

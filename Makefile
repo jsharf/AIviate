@@ -1,5 +1,4 @@
-
-DEBUG=-Wall -Werror -pedantic -Wextra
+DEBUG=-Wall -pedantic -Wextra
 
 FLAGS=-std=c++11
 

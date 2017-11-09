@@ -152,22 +152,22 @@ result_t UDPSender::send(const string msg) const
     return success;
 }
 
+// Format:
+// dthetax, dthetay, dthetaz,
+// ax, ay, az,
+// altitude
 result_t UDPSender::sendSensor(const sensor &data) const
 {
     char str[256];
-    float roll = (float) data.mx;
-    float pitch = (float) data.my;
-    float heading = (float) data.mz;
-    float r_rate = (float) data.gx;
-    float p_rate = (float) data.gy;
-    float y_rate = (float) data.gz;
+    float dthetax = (float) data.gx;
+    float dthetay = (float) data.gy;
+    float dthetaz = (float) data.gz;
     float ax = (float) data.ax;
     float ay = (float) data.ay;
     float az = (float) data.az;
     float altitude = (float) data.altitude;
-    snprintf(str, 128, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",\
-    roll, pitch, heading, \
-    r_rate, p_rate, y_rate, \
+    snprintf(str, 128, "%f\t%f\t%f\t%f\t%f\t%f\t%f\n", \
+    dthetax, dthetay, dthetaz, \
     ax, ay, az, \
     altitude);
     string packet((const char *) str);
